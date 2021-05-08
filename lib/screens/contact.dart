@@ -14,6 +14,7 @@ class Contact extends StatefulWidget {
 }
 
 class _ContactScreenWidget extends State<Contact> {
+
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
   bool _isLoading = false;
   final TextEditingController emailController = new TextEditingController();
@@ -33,7 +34,6 @@ class _ContactScreenWidget extends State<Contact> {
         mobile +
         "&message=" +
         message;
-    // SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var jsonResponse = null;
     var response = await http.post(Uri.parse(finalUrl));
     print(response.statusCode);

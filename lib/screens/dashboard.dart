@@ -5,8 +5,8 @@ import 'package:Aaraam/utilities/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/services.dart';
-
 import 'package:Aaraam/screens/contact.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 final List<String> imgList = [
   'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80',
@@ -64,6 +64,21 @@ final List<Widget> imageSliders = imgList
 
 class _DashboardScreenState extends State<Dashboard> {
   int _current = 0;
+  String email = '';
+  String name = '';
+  String mobile = '';
+
+  _DashboardScreenState() {
+    getStringValuesSF("USER_EMAIL").then((val) => setState(() {
+          email = val;
+        }));
+    getStringValuesSF("USER_NAME").then((val) => setState(() {
+          name = val;
+        }));
+    getStringValuesSF("USER_EMAIL").then((val) => setState(() {
+          email = val;
+        }));
+  }
 
   Widget _buildSecondSection() {
     return Container(
@@ -141,10 +156,10 @@ class _DashboardScreenState extends State<Dashboard> {
   Widget _buildLogo(AssetImage logo) {
     return GestureDetector(
       child: Container(
-        height: 60.0,
-        width: 60.0,
+        width: 200.0,
+        height: 150.0,
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
+          /* shape: BoxShape.circle,
           color: Colors.white,
           boxShadow: [
             BoxShadow(
@@ -152,7 +167,7 @@ class _DashboardScreenState extends State<Dashboard> {
               offset: Offset(0, 2),
               blurRadius: 4.0,
             ),
-          ],
+          ],*/
           image: DecorationImage(
             image: logo,
           ),
@@ -237,18 +252,17 @@ class _DashboardScreenState extends State<Dashboard> {
     return Container(
       decoration: backGreenGradient,
       width: double.infinity,
-      margin: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-      padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 30.0),
+      padding: EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          _buildLogo(AssetImage('assets/images/contact.png')),
+          _buildLogo(AssetImage('assets/images/contactus.png')),
           SizedBox(height: 10.0),
           Text(
             'Need Help ?',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.black,
               fontFamily: 'OpenSans',
               fontSize: 22.0,
               fontWeight: FontWeight.normal,
@@ -259,13 +273,35 @@ class _DashboardScreenState extends State<Dashboard> {
             'Talk to our customer service centre for updated information on how to ship your shipment with us.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.black54,
               fontFamily: 'OpenSans',
               fontSize: 16.0,
               fontWeight: FontWeight.w300,
             ),
           ),
-          _buildContactButton()
+          SizedBox(height: 10.0),
+          _buildContactButton(),
+          SizedBox(height: 10.0),
+          Text(
+            '-------------  OR  --------------',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.black26,
+              fontFamily: 'OpenSans',
+              fontSize: 14.0,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+          SizedBox(height: 15.0),
+          Container(
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  _buildContactInfo("Call us at", "+91 9898989898"),
+                  _buildContactInfo(" Email us on", "info@aaraam.in"),
+                ]),
+          ),
+          SizedBox(height: 20.0),
         ],
       ),
     );
@@ -291,11 +327,11 @@ class _DashboardScreenState extends State<Dashboard> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(30.0),
         ),
-        color: Colors.white,
+        color: Colors.lightGreen,
         child: Text(
           'CONTACT US',
           style: TextStyle(
-            color: Colors.lightGreen,
+            color: Colors.white,
             letterSpacing: 1,
             fontSize: 16.0,
             fontWeight: FontWeight.bold,
@@ -304,6 +340,53 @@ class _DashboardScreenState extends State<Dashboard> {
         ),
       ),
     );
+  }
+
+  Widget _buildContactInfo(String heading, String data) {
+    return Container(
+        margin: EdgeInsets.symmetric(horizontal: 7.0),
+        /*  padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+        decoration: kBoxDecorationStyle,*/
+        child: RaisedButton(
+          padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(7.0),
+          ),
+          color: Colors.white,
+          elevation: 1.0,
+          onPressed: () {
+            /* DialPad(
+                enableDtmf: true,
+                outputMask: data,
+                backspaceButtonIconColor: Colors.red,
+                makeCall: (number) {
+                  print(number);
+                });*/
+          },
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  heading,
+                  style: TextStyle(
+                    color: Colors.lightGreen,
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.normal,
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+                SizedBox(height: 5.0),
+                Text(
+                  data,
+                  style: TextStyle(
+                    color: Colors.lightGreen,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.normal,
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+              ]),
+        ));
   }
 
   Widget _buildTopSection() {
@@ -440,6 +523,7 @@ class _DashboardScreenState extends State<Dashboard> {
                         _buildBookOrder(),
                         _buildTopSection(),
                         _buildSecondSection(),
+                        SizedBox(height: 20.0),
                         _buildContactSection(),
                         SizedBox(height: 50.0),
                         Text(
@@ -480,13 +564,13 @@ class _DashboardScreenState extends State<Dashboard> {
           UserAccountsDrawerHeader(
             decoration: backGreen,
             accountName: Text(
-              "Priya Yadav",
+              name,
               style: TextStyle(
                 fontSize: 16.0,
               ),
             ),
             accountEmail: Text(
-              "Priya@gmail.com",
+              email,
               style: TextStyle(
                 fontSize: 14.0,
               ),
@@ -494,7 +578,7 @@ class _DashboardScreenState extends State<Dashboard> {
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
               child: Text(
-                "P",
+                '${name[0]}',
                 style: TextStyle(
                   fontSize: 40.0,
                   color: Colors.lightGreen,

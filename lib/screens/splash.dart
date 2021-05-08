@@ -15,6 +15,14 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  bool is_login = false;
+
+  _SplashScreenState() {
+    getBoolValuesSF("IS_LOGIN").then((val) => setState(() {
+          is_login = val;
+        }));
+  }
+
   @override
   void initState() {
     super.initState();
@@ -26,17 +34,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void onDoneLoading() {
-    final is_login = getStringValuesSF('IS_LOGIN');
-
-    /* Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return Welcome();
-        },
-      ),
-    );*/
-    if (is_login == 'AARAAM') {
+    print(is_login);
+    if (is_login == true) {
       Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => Dashboard()),

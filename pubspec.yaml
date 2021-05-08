@@ -31,7 +31,7 @@ dependencies:
   webview_flutter: ^2.0.4
   form_field_validator: ^1.0.1
   http: any
-
+  plugin_platform_interface: ^2.0.0
   shared_preferences: any
 
 

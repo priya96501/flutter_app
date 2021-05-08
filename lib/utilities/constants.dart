@@ -29,7 +29,6 @@ final kBoxDecorationStyle = BoxDecoration(
   ],
 );
 
-
 final greenBaground = BoxDecoration(
   color: Colors.lightGreen,
   borderRadius: BorderRadius.circular(5.0),
@@ -58,7 +57,8 @@ final backGreen = BoxDecoration(
 );
 
 final backGreenGradient = BoxDecoration(
-  gradient: LinearGradient(
+  color: Colors.white60,
+  /*gradient: LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
@@ -68,7 +68,7 @@ final backGreenGradient = BoxDecoration(
       Color(0xFFAED581),
     ],
     stops: [0.1, 0.4, 0.7, 0.9],
-  ),
+  ),*/
   borderRadius: BorderRadius.circular(5.0),
   boxShadow: [
     BoxShadow(
@@ -79,64 +79,51 @@ final backGreenGradient = BoxDecoration(
   ],
 );
 
-addStringToSF(String key, String value) async {
-  SharedPreferences.setMockInitialValues({});
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString(key, value);
+Future<void> saveStringInLocalMemory(String key, String value) async {
+  var pref = await SharedPreferences.getInstance();
+  pref.setString(key, value);
 }
 
-addIntToSF(String key, int value) async {
-  SharedPreferences.setMockInitialValues({});
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setInt(key, value);
+Future<void> addIntToSF(String key, int value) async {
+  var pref = await SharedPreferences.getInstance();
+  pref.setInt(key, value);
 }
 
-addDoubleToSF(String key, double value) async {
-  SharedPreferences.setMockInitialValues({});
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setDouble(key, value);
+Future<void> addDoubleToSF(String key, double value) async {
+  var pref = await SharedPreferences.getInstance();
+  pref.setDouble(key, value);
 }
 
-addBoolToSF(String key, bool val) async {
-  SharedPreferences.setMockInitialValues({});
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setBool(key, val);
+Future<void> addBoolToSF(String key, bool value) async {
+  var pref = await SharedPreferences.getInstance();
+  pref.setBool(key, value);
 }
 
-getStringValuesSF(String key) async {
-  SharedPreferences.setMockInitialValues({});
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  //Return String
-  String? stringValue = prefs.getString(key);
-  return stringValue;
+Future<String> getStringValuesSF(String key) async {
+  var pref = await SharedPreferences.getInstance();
+  var number = pref.getString(key) ?? "";
+  return number;
 }
 
-getBoolValuesSF(String key) async {
-  SharedPreferences.setMockInitialValues({});
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  //Return bool
-  bool? boolValue = prefs.getBool(key);
-  return boolValue;
+Future<bool> getBoolValuesSF(String key) async {
+  var pref = await SharedPreferences.getInstance();
+  var number = pref.getBool(key) ?? false;
+  return number;
 }
 
-getIntValuesSF(String key) async {
-  SharedPreferences.setMockInitialValues({});
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  //Return int
-  int? intValue = prefs.getInt(key);
-  return intValue;
+Future<int> getIntValuesSF(String key) async {
+  var pref = await SharedPreferences.getInstance();
+  var number = pref.getInt(key) ?? 0;
+  return number;
 }
 
-getDoubleValuesSF(String key) async {
-  SharedPreferences.setMockInitialValues({});
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  //Return double
-  double? doubleValue = prefs.getDouble(key);
-  return doubleValue;
+Future<double> getDoubleValuesSF(String key) async {
+  var pref = await SharedPreferences.getInstance();
+  var number = pref.getDouble(key) ?? 0;
+  return number;
 }
 
-removeValues(String Key) async {
-  SharedPreferences.setMockInitialValues({});
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.remove(Key);
+Future<void> removeValues(String Key) async {
+  var pref = await SharedPreferences.getInstance();
+  pref.remove(Key);
 }
