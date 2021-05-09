@@ -223,7 +223,7 @@ class _OrderScreenWidget extends State<Order> {
                       // margin: EdgeInsets.all(15.0),
                       padding: EdgeInsets.all(15.0),
                       child: Column(children: <Widget>[
-                        Text(price_data_,
+                        Text("₹ "+price_data_,
                             style: TextStyle(
                               fontFamily: 'OpenSans',
                               fontSize: 16.0,

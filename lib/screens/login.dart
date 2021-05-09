@@ -1,10 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:Aaraam/screens/dashboard.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:Aaraam/utilities/constants.dart';
 import 'package:http/http.dart' as http;
 
@@ -18,8 +16,10 @@ class _LoginScreenState extends State<LoginScreen> {
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
   GlobalKey<FormState> formkey2 = GlobalKey<FormState>();
   bool _isLoading = false;
+  bool _enable_mobile = true;
   bool viewVisible = false;
   bool viewVisibleCheckUSer = true;
+  bool viewVisibleChangeNumber = false;
   bool _isLogin = false;
   String? user_id;
   final TextEditingController mobileController = new TextEditingController();
@@ -28,6 +28,18 @@ class _LoginScreenState extends State<LoginScreen> {
   void showWidget() {
     setState(() {
       viewVisible = true;
+    });
+  }
+
+  void hideChangeNumberWidget() {
+    setState(() {
+      viewVisibleChangeNumber = false;
+    });
+  }
+
+  void showChangeNumberWidget() {
+    setState(() {
+      viewVisibleChangeNumber = true;
     });
   }
 
@@ -99,8 +111,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontFamily: 'OpenSans')),
         );
         ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        showWidget();
-        hideWidgetCheck();
+        showWidget(); // show verify otp view
+        showChangeNumberWidget(); // show change number button
+        hideWidgetCheck(); // hide check user button
+        _enable_mobile = false; // disable mobile textfield
       }
     } else {
       setState(() {
@@ -314,13 +328,30 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(
-          'Mobile Number',
-          style: kLabelStyle,
+        Container(
+          width: double.infinity,
+          child: Row(
+            //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              Text(
+                'Mobile Number',
+                style: kLabelStyle,
+              ),
+              Visibility(
+                  maintainAnimation: true,
+                  maintainState: true,
+                  visible: viewVisibleChangeNumber,
+                  child: Container(
+                      child: Column(children: <Widget>[
+                    _buildChangeNumber(),
+                  ])))
+            ],
+          ),
         ),
-        SizedBox(height: 10.0),
+        SizedBox(height: 5.0),
         Container(
           child: TextFormField(
+              enabled: _enable_mobile,
               keyboardType: TextInputType.number,
               controller: mobileController,
               cursorColor: Colors.lightGreen,
@@ -369,7 +400,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-        SizedBox(height: 10.0),
+        SizedBox(height: 5.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextFormField(
@@ -398,6 +429,31 @@ class _LoginScreenState extends State<LoginScreen> {
               ])),
         ),
       ],
+    );
+  }
+
+  Widget _buildChangeNumber() {
+    return Container(
+      width: 220.0,
+      alignment: Alignment.centerRight,
+      child: FlatButton(
+        onPressed: () {
+          _isLogin = false;
+          hideWidget();
+          showWidgetCheck();
+          mobileController.clear();
+          _enable_mobile = true;
+          hideChangeNumberWidget();
+        },
+        child: Text('Change Number',
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: Colors.lightGreen,
+              letterSpacing: 0.5,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'OpenSans',
+            )),
+      ),
     );
   }
 
@@ -727,9 +783,4 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (context) => Dashboard()),
         ModalRoute.withName("/dashboard"));
   }
-
-/*
-  * It returns the saved the int value from the memory.
-  * */
-
 }

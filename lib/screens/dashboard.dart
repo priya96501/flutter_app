@@ -1,17 +1,16 @@
 import 'package:Aaraam/screens/login.dart';
 import 'package:Aaraam/screens/order.dart';
+import 'package:Aaraam/screens/pricing.dart';
 import 'package:Aaraam/screens/redirect.dart';
 import 'package:Aaraam/utilities/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/services.dart';
 import 'package:Aaraam/screens/contact.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 final List<String> imgList = [
-  'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=94a1e718d89ca60a6337a6008341ca50&auto=format&fit=crop&w=1950&q=80',
-  'https://images.unsplash.com/photo-1508704019882-f9cf40e475b4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=8c6e5e3aba713b17aa1fe71ab4f0ae5b&auto=format&fit=crop&w=1352&q=80',
-  'https://images.unsplash.com/photo-1519985176271-adb1088fa94c?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a0c8d632e977f94e5d312d9893258f59&auto=format&fit=crop&w=1355&q=80'
+  'https://www.drugvillatechnologies.com/aaram/oldfile/images/s1.jpg',
+  'https://www.drugvillatechnologies.com/aaram/oldfile/images/s1.jpg'
 ];
 
 class Dashboard extends StatefulWidget {
@@ -28,7 +27,12 @@ final List<Widget> imageSliders = imgList
                 borderRadius: BorderRadius.all(Radius.circular(5.0)),
                 child: Stack(
                   children: <Widget>[
-                    Image.network(item, fit: BoxFit.cover, width: 1000.0),
+                    Image.network(
+                      item,
+                      fit: BoxFit.cover,
+                      width: 1000.0,
+                      height: 200.0,
+                    ),
                     Positioned(
                       bottom: 0.0,
                       left: 0.0,
@@ -119,13 +123,92 @@ class _DashboardScreenState extends State<Dashboard> {
     );
   }
 
+  Widget _buildPricingSection() {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+      padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 35.0),
+      decoration: kBoxDecorationStyle,
+     // width: double.infinity,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            width: 200.0,
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                SizedBox(height: 10.0),
+                Text(
+                  'Best Online courier in India At Affordable price',
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                    letterSpacing: 0.5,
+                    fontFamily: 'OpenSans',
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 15.0),
+                Text(
+                  'Courier delivery rates for Delhi/NCR',
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                    letterSpacing: 0.5,
+                    fontFamily: 'OpenSans',
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black38,
+                  ),
+                ),
+                SizedBox(height: 10.0),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 15.0),
+                  padding: EdgeInsets.symmetric(vertical: 7.0),
+                  width: double.infinity,
+                  child: RaisedButton(
+                    elevation: 2.0,
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return Pricing();
+                          },
+                        ),
+                      );
+                    },
+                    padding: EdgeInsets.all(12.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30.0),
+                    ),
+                    color: Colors.lightGreen,
+                    child: Text(
+                      'View Pricing',
+                      style: TextStyle(
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'OpenSans',
+                      ),
+                    ),
+                  ),
+                ),
+              ])),
+          Image.asset('assets/images/icon3.png'),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBookOrder() {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.0),
       padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
       decoration: whiteBackground,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Image.asset('assets/images/delivery.png'),
           SizedBox(width: 15.0),
@@ -143,7 +226,18 @@ class _DashboardScreenState extends State<Dashboard> {
                     color: Colors.black87,
                   ),
                 ),
-                SizedBox(height: 10.0),
+                SizedBox(height: 5.0),
+                Text(
+                  'Low-priced same day delivery service!',
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontFamily: 'OpenSans',
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black54,
+                  ),
+                ),
+                SizedBox(height: 5.0),
                 _buildBookNowButton()
               ],
             ),
@@ -159,15 +253,6 @@ class _DashboardScreenState extends State<Dashboard> {
         width: 200.0,
         height: 150.0,
         decoration: BoxDecoration(
-          /* shape: BoxShape.circle,
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              offset: Offset(0, 2),
-              blurRadius: 4.0,
-            ),
-          ],*/
           image: DecorationImage(
             image: logo,
           ),
@@ -345,8 +430,6 @@ class _DashboardScreenState extends State<Dashboard> {
   Widget _buildContactInfo(String heading, String data) {
     return Container(
         margin: EdgeInsets.symmetric(horizontal: 7.0),
-        /*  padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
-        decoration: kBoxDecorationStyle,*/
         child: RaisedButton(
           padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
           shape: RoundedRectangleBorder(
@@ -370,17 +453,17 @@ class _DashboardScreenState extends State<Dashboard> {
                   heading,
                   style: TextStyle(
                     color: Colors.lightGreen,
-                    fontSize: 14.0,
+                    fontSize: 13.0,
                     fontWeight: FontWeight.normal,
                     fontFamily: 'OpenSans',
                   ),
                 ),
-                SizedBox(height: 5.0),
+                SizedBox(height: 7.0),
                 Text(
                   data,
                   style: TextStyle(
                     color: Colors.lightGreen,
-                    fontSize: 16.0,
+                    fontSize: 15.0,
                     fontWeight: FontWeight.normal,
                     fontFamily: 'OpenSans',
                   ),
@@ -451,7 +534,6 @@ class _DashboardScreenState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     var title = "Aaraam";
-    final _formKey = GlobalKey<FormState>();
     return Scaffold(
       appBar: AppBar(
         brightness: Brightness.dark,
@@ -525,6 +607,8 @@ class _DashboardScreenState extends State<Dashboard> {
                         _buildSecondSection(),
                         SizedBox(height: 20.0),
                         _buildContactSection(),
+                        SizedBox(height: 30.0),
+                        _buildPricingSection(),
                         SizedBox(height: 50.0),
                         Text(
                           'Why choose us?',
@@ -610,6 +694,24 @@ class _DashboardScreenState extends State<Dashboard> {
                 MaterialPageRoute(
                   builder: (context) {
                     return Order();
+                  },
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.price_check,
+              color: Colors.black26,
+            ),
+            title: Text("Pricing"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return Pricing();
                   },
                 ),
               );
@@ -811,7 +913,7 @@ class _DashboardScreenState extends State<Dashboard> {
         },
         padding: EdgeInsets.all(12.0),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
+          borderRadius: BorderRadius.circular(30.0),
         ),
         color: Colors.lightGreen,
         child: Text(
