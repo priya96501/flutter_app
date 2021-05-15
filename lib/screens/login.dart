@@ -84,7 +84,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
         Map<String, dynamic> map = jsonResponse;
         String? data = map["is_user"];
-        String message = map["message"];
         user_id = map["user_id"];
         print(data);
         print(user_id);
@@ -326,12 +325,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildMobileWidget() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Container(
           width: double.infinity,
           child: Row(
-            //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
                 'Mobile Number',
@@ -384,12 +382,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildOTPWidget() {
     return Column(
-      //crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Container(
-          width: double.infinity,
           child: Row(
-            //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Text(
                 '4-digit OTP',
@@ -434,8 +430,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildChangeNumber() {
     return Container(
-      width: 220.0,
-      alignment: Alignment.centerRight,
       child: FlatButton(
         onPressed: () {
           _isLogin = false;
@@ -446,7 +440,7 @@ class _LoginScreenState extends State<LoginScreen> {
           hideChangeNumberWidget();
         },
         child: Text('Change Number',
-            textAlign: TextAlign.right,
+            //textAlign: TextAlign.right,
             style: TextStyle(
               color: Colors.lightGreen,
               letterSpacing: 0.5,
@@ -459,11 +453,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildResendOtp() {
     return Container(
-      width: 250.0,
-      alignment: Alignment.centerRight,
       child: FlatButton(
         onPressed: () => _resendOTP(mobileController.text),
-        // padding: EdgeInsets.only(left: 150.0),
         child: Text('Resend OTP',
             textAlign: TextAlign.right,
             style: TextStyle(
@@ -546,7 +537,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildCheckUserButton() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 25.0),
+      padding: EdgeInsets.symmetric(vertical: 30.0),
       width: double.infinity,
       child: RaisedButton(
         elevation: 2.0,
@@ -682,7 +673,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         brightness: Brightness.dark,
         title: Text(
-          "Sign In",
+          "Sign In / Sign up",
           style: TextStyle(
             color: Colors.white,
             fontFamily: 'OpenSans',
@@ -715,12 +706,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         physics: AlwaysScrollableScrollPhysics(),
                         padding: EdgeInsets.symmetric(
                           horizontal: 40.0,
-                          vertical: 60.0,
+                          vertical: 40.0,
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            Text(
+                            /* Text(
                               'Sign In / Sign Up',
                               style: TextStyle(
                                 color: Colors.black,
@@ -728,8 +719,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fontSize: 24.0,
                                 fontWeight: FontWeight.bold,
                               ),
-                            ),
-                            SizedBox(height: 50.0),
+                            ),*/
+                            Image.asset('assets/images/delivery.png'),
+                            SizedBox(height: 40.0),
                             Container(
                                 child: Form(
                                     autovalidate: true,
@@ -757,10 +749,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                         //check for validation while typing
                                         key: formkey2,
                                         child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                           /* crossAxisAlignment:
+                                                CrossAxisAlignment.start,*/
                                             children: <Widget>[
                                               _buildOTPWidget(),
+                                              SizedBox(height: 10.0),
                                               _buildVerifyButton(),
                                             ])))),
                             _buildSignInWithText(),

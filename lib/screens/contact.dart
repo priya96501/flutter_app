@@ -14,13 +14,25 @@ class Contact extends StatefulWidget {
 }
 
 class _ContactScreenWidget extends State<Contact> {
-
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
   bool _isLoading = false;
+  String company_email = '', company_mobile = '', company_address = '';
   final TextEditingController emailController = new TextEditingController();
   final TextEditingController nameController = new TextEditingController();
   final TextEditingController mobileController = new TextEditingController();
   final TextEditingController messageController = new TextEditingController();
+
+  _ContactScreenWidget() {
+    getStringValuesSF("COMPANY_EMAIL").then((val) => setState(() {
+          company_email = val;
+        }));
+    getStringValuesSF("COMPANY_MOBILE").then((val) => setState(() {
+          company_mobile = val;
+        }));
+    getStringValuesSF("COMPANY_ADDRESS").then((val) => setState(() {
+          company_address = val;
+        }));
+  }
 
   Future<void> submitContactForm(String email, name, mobile, message) async {
     String baseUrl =
@@ -308,7 +320,7 @@ class _ContactScreenWidget extends State<Contact> {
                         ),
                         SizedBox(height: 5.0),
                         Text(
-                          '+91 9898989898',
+                          company_mobile,
                           style: TextStyle(
                             fontFamily: 'OpenSans',
                             fontSize: 14.0,
@@ -348,7 +360,7 @@ class _ContactScreenWidget extends State<Contact> {
                         ),
                         SizedBox(height: 5.0),
                         Text(
-                          'info@aaraam.com',
+                          company_email,
                           style: TextStyle(
                             fontFamily: 'OpenSans',
                             letterSpacing: 0.5,
@@ -387,7 +399,7 @@ class _ContactScreenWidget extends State<Contact> {
                         ),
                         SizedBox(height: 5.0),
                         Text(
-                          '7/27 Kriti Nagar Industrial Area New Delhi-110015',
+                          company_address,
                           style: TextStyle(
                             fontFamily: 'OpenSans',
                             letterSpacing: 0.5,

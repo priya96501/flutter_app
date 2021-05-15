@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:Aaraam/screens/bookings.dart';
 import 'package:Aaraam/screens/login.dart';
 import 'package:Aaraam/screens/order.dart';
 import 'package:Aaraam/screens/pricing.dart';
@@ -9,8 +12,8 @@ import 'package:flutter/services.dart';
 import 'package:Aaraam/screens/contact.dart';
 
 final List<String> imgList = [
+  'https://www.drugvillatechnologies.com/aaram/images/banner2.jpg',
   'https://www.drugvillatechnologies.com/aaram/oldfile/images/s1.jpg',
-  'https://www.drugvillatechnologies.com/aaram/oldfile/images/s1.jpg'
 ];
 
 class Dashboard extends StatefulWidget {
@@ -22,9 +25,9 @@ final List<Widget> imageSliders = imgList
     .map((item) => Container(
           child: Container(
             padding: EdgeInsets.symmetric(vertical: 10.0),
-            margin: EdgeInsets.all(5.0),
+            margin: EdgeInsets.all(2.0),
             child: ClipRRect(
-                borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                borderRadius: BorderRadius.all(Radius.circular(3.0)),
                 child: Stack(
                   children: <Widget>[
                     Image.network(
@@ -68,20 +71,73 @@ final List<Widget> imageSliders = imgList
 
 class _DashboardScreenState extends State<Dashboard> {
   int _current = 0;
-  String email = '';
-  String name = '';
-  String mobile = '';
+  String name = '', user_id = '';
+  String mobile = '',
+      privacy_policy_url = '',
+      terms_url = '',
+      about_url = '',
+      company_email = '',
+      company_mobile = '',
+      company_address = '';
+  bool _isLoading = false;
 
   _DashboardScreenState() {
-    getStringValuesSF("USER_EMAIL").then((val) => setState(() {
-          email = val;
-        }));
     getStringValuesSF("USER_NAME").then((val) => setState(() {
           name = val;
         }));
-    getStringValuesSF("USER_EMAIL").then((val) => setState(() {
-          email = val;
+    getStringValuesSF("USER_MOBILE").then((val) => setState(() {
+          mobile = val;
         }));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getStringValuesSF("USER_ID").then((val) => setState(() {
+          user_id = val;
+          print("user_id : " + user_id);
+          fetchJSONData(user_id);
+        }));
+    setState(() {
+      _isLoading = true;
+    });
+  }
+
+  fetchJSONData(String userid) async {
+    String apiURL =
+        'https://www.drugvillatechnologies.com/aaram/api/getuser.php?user_id=' +
+            userid;
+    var jsonResponse = await http.get(Uri.parse(apiURL));
+
+    if (jsonResponse.statusCode == 200) {
+      var response = json.decode(jsonResponse.body);
+      print(jsonResponse.statusCode);
+      print(response);
+
+      Map<String, dynamic> map = response;
+      String status = map["status"];
+
+      if (status == "1") {
+        setState(() {
+          _isLoading = false;
+        });
+        privacy_policy_url = map["privacy_policy_url"];
+        terms_url = map["term_condition_url"];
+        about_url = map["about_us_url"];
+        company_address = map["company_address"];
+        company_email = map["company_email"];
+        company_mobile = map["company_mobile"];
+
+        saveStringInLocalMemory("COMPANY_ADDRESS", company_address);
+        saveStringInLocalMemory("COMPANY_EMAIL", company_email);
+        saveStringInLocalMemory("COMPANY_MOBILE", company_mobile);
+      }
+    } else {
+      setState(() {
+        _isLoading = false;
+      });
+      throw Exception('Failed to load data from internet');
+    }
   }
 
   Widget _buildSecondSection() {
@@ -128,81 +184,73 @@ class _DashboardScreenState extends State<Dashboard> {
       margin: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
       padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 35.0),
       decoration: kBoxDecorationStyle,
-     // width: double.infinity,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Container(
-            width: 200.0,
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                SizedBox(height: 10.0),
-                Text(
-                  'Best Online courier in India At Affordable price',
-                  textAlign: TextAlign.start,
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            SizedBox(height: 10.0),
+            Text(
+              'Best Online courier in India At Affordable price',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                letterSpacing: 0.5,
+                fontFamily: 'OpenSans',
+                fontSize: 17.0,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            SizedBox(height: 15.0),
+            Text(
+              'Courier delivery rates for Delhi/NCR',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                letterSpacing: 0.5,
+                fontFamily: 'OpenSans',
+                fontSize: 15.0,
+                fontWeight: FontWeight.normal,
+                color: Colors.black38,
+              ),
+            ),
+            _buildLogo(AssetImage('assets/images/pricing.png')),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 20.0),
+              // padding: EdgeInsets.symmetric(vertical: 7.0),
+              width: double.infinity,
+              child: RaisedButton(
+                elevation: 2.0,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return Pricing();
+                      },
+                    ),
+                  );
+                },
+                padding: EdgeInsets.all(12.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+                color: Colors.lightGreen,
+                child: Text(
+                  'View Pricing',
                   style: TextStyle(
+                    color: Colors.white,
                     letterSpacing: 0.5,
-                    fontFamily: 'OpenSans',
                     fontSize: 16.0,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 15.0),
-                Text(
-                  'Courier delivery rates for Delhi/NCR',
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                    letterSpacing: 0.5,
                     fontFamily: 'OpenSans',
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.black38,
                   ),
                 ),
-                SizedBox(height: 10.0),
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 15.0),
-                  padding: EdgeInsets.symmetric(vertical: 7.0),
-                  width: double.infinity,
-                  child: RaisedButton(
-                    elevation: 2.0,
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) {
-                            return Pricing();
-                          },
-                        ),
-                      );
-                    },
-                    padding: EdgeInsets.all(12.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30.0),
-                    ),
-                    color: Colors.lightGreen,
-                    child: Text(
-                      'View Pricing',
-                      style: TextStyle(
-                        color: Colors.white,
-                        letterSpacing: 0.5,
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'OpenSans',
-                      ),
-                    ),
-                  ),
-                ),
-              ])),
-          Image.asset('assets/images/icon3.png'),
-        ],
-      ),
+              ),
+            ),
+            SizedBox(height: 10.0),
+          ]),
     );
   }
 
-  Widget _buildBookOrder() {
+  Widget _buildBookOrder(Size size) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.0),
       padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
@@ -210,18 +258,30 @@ class _DashboardScreenState extends State<Dashboard> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Image.asset('assets/images/delivery.png'),
-          SizedBox(width: 15.0),
+          GestureDetector(
+            child: Container(
+              width: size.width * 0.3,
+              height: 120.0,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/delivery.png'),
+                ),
+              ),
+            ),
+          ),
           Container(
-            width: 220.0,
+            padding: EdgeInsets.symmetric(horizontal: 10.0),
+            width: size.width * 0.6,
+            // width: 200.0,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
                   'Fastest Peer to Peer Delivery Service in Delhi/NCR',
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontFamily: 'OpenSans',
-                    fontSize: 16.0,
+                    fontSize: 15.0,
                     fontWeight: FontWeight.normal,
                     color: Colors.black87,
                   ),
@@ -232,7 +292,7 @@ class _DashboardScreenState extends State<Dashboard> {
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontFamily: 'OpenSans',
-                    fontSize: 14.0,
+                    fontSize: 13.0,
                     fontWeight: FontWeight.normal,
                     color: Colors.black54,
                   ),
@@ -382,8 +442,8 @@ class _DashboardScreenState extends State<Dashboard> {
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  _buildContactInfo("Call us at", "+91 9898989898"),
-                  _buildContactInfo(" Email us on", "info@aaraam.in"),
+                  _buildContactInfo("Call us at", company_mobile),
+                  _buildContactInfo(" Email us on", company_email),
                 ]),
           ),
           SizedBox(height: 20.0),
@@ -472,18 +532,20 @@ class _DashboardScreenState extends State<Dashboard> {
         ));
   }
 
-  Widget _buildTopSection() {
+  Widget _buildTopSection(Size size) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 15.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
           _buildData(
+            size,
             '2-3 hours\ndelivery',
             'We can deliver ASAP or at a specified time documents, products, flowers, any product.',
             'assets/images/icon1.png',
           ),
           _buildData(
+            size,
             'Fastest courier serivce',
             'We can deliver ASAP or at a specified time documents, products, flowers, any product.',
             'assets/images/icon2.png',
@@ -493,11 +555,13 @@ class _DashboardScreenState extends State<Dashboard> {
     );
   }
 
-  Widget _buildData(String heading, String description, String logo) {
+  Widget _buildData(
+      Size size, String heading, String description, String logo) {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
       decoration: kBoxDecorationStyle,
-      width: 180.0,
+      width: size.width * 0.43,
+      // width: 180.0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
@@ -534,6 +598,7 @@ class _DashboardScreenState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     var title = "Aaraam";
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: AppBar(
         brightness: Brightness.dark,
@@ -550,98 +615,100 @@ class _DashboardScreenState extends State<Dashboard> {
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
-        child: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Stack(
-            children: <Widget>[
-              Container(
-                height: double.infinity,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : GestureDetector(
+                onTap: () => FocusScope.of(context).unfocus(),
+                child: Stack(
+                  children: <Widget>[
+                    Container(
+                      height: double.infinity,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                      ),
+                    ),
+                    Container(
+                      height: double.infinity,
+                      child: SingleChildScrollView(
+                        physics: AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 20.0,
+                        ),
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              CarouselSlider(
+                                items: imageSliders,
+                                options: CarouselOptions(
+                                    autoPlay: true,
+                                    enlargeCenterPage: true,
+                                    aspectRatio: 2.0,
+                                    onPageChanged: (index, reason) {
+                                      setState(() {
+                                        _current = index;
+                                      });
+                                    }),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: imgList.map((url) {
+                                  int index = imgList.indexOf(url);
+                                  return Container(
+                                    width: 8.0,
+                                    height: 8.0,
+                                    margin: EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 2.0),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: _current == index
+                                          ? Colors.lightGreen
+                                          : Color.fromRGBO(0, 0, 0, 0.2),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              SizedBox(height: 10.0),
+                              _buildBookOrder(size),
+                              _buildTopSection(size),
+                              _buildSecondSection(),
+                              SizedBox(height: 20.0),
+                              _buildContactSection(),
+                              SizedBox(height: 30.0),
+                              _buildPricingSection(),
+                              SizedBox(height: 50.0),
+                              Text(
+                                'Why choose us?',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontFamily: 'OpenSans',
+                                  fontSize: 22.0,
+                                  letterSpacing: 0.5,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 10.0),
+                              Text(
+                                'Aaraam is revolutionising urgent deliveries',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  fontFamily: 'OpenSans',
+                                  fontSize: 16.0,
+                                  letterSpacing: 0.5,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
+                              SizedBox(height: 35.0),
+                              _buildBottomInformation(),
+                              SizedBox(height: 30.0),
+                            ]),
+                      ),
+                    )
+                  ],
                 ),
               ),
-              Container(
-                height: double.infinity,
-                child: SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.symmetric(
-                    vertical: 20.0,
-                  ),
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        CarouselSlider(
-                          items: imageSliders,
-                          options: CarouselOptions(
-                              autoPlay: true,
-                              enlargeCenterPage: true,
-                              aspectRatio: 2.0,
-                              onPageChanged: (index, reason) {
-                                setState(() {
-                                  _current = index;
-                                });
-                              }),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: imgList.map((url) {
-                            int index = imgList.indexOf(url);
-                            return Container(
-                              width: 8.0,
-                              height: 8.0,
-                              margin: EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 2.0),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: _current == index
-                                    ? Colors.lightGreen
-                                    : Color.fromRGBO(0, 0, 0, 0.2),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                        SizedBox(height: 10.0),
-                        _buildBookOrder(),
-                        _buildTopSection(),
-                        _buildSecondSection(),
-                        SizedBox(height: 20.0),
-                        _buildContactSection(),
-                        SizedBox(height: 30.0),
-                        _buildPricingSection(),
-                        SizedBox(height: 50.0),
-                        Text(
-                          'Why choose us?',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontFamily: 'OpenSans',
-                            fontSize: 22.0,
-                            letterSpacing: 0.5,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 10.0),
-                        Text(
-                          'Aaraam is revolutionising urgent deliveries',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.black54,
-                            fontFamily: 'OpenSans',
-                            fontSize: 16.0,
-                            letterSpacing: 0.5,
-                            fontWeight: FontWeight.normal,
-                          ),
-                        ),
-                        SizedBox(height: 35.0),
-                        _buildBottomInformation(),
-                        SizedBox(height: 30.0),
-                      ]),
-                ),
-              )
-            ],
-          ),
-        ),
       ),
       drawer: Drawer(
         child: ListView(padding: EdgeInsets.zero, children: <Widget>[
@@ -654,7 +721,8 @@ class _DashboardScreenState extends State<Dashboard> {
               ),
             ),
             accountEmail: Text(
-              email,
+              //email,
+              mobile,
               style: TextStyle(
                 fontSize: 14.0,
               ),
@@ -679,6 +747,24 @@ class _DashboardScreenState extends State<Dashboard> {
             title: Text("Home"),
             onTap: () {
               Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: Icon(
+              Icons.book_rounded,
+              color: Colors.black26,
+            ),
+            title: Text("My Bookings"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return Bookings();
+                  },
+                ),
+              );
             },
           ),
           ListTile(
@@ -727,7 +813,8 @@ class _DashboardScreenState extends State<Dashboard> {
               Navigator.pop(context);
               _handleURLButtonPress(
                   context,
-                  "https://www.drugvillatechnologies.com/oncology/mobile-about.php",
+                  about_url
+                  /*"https://www.drugvillatechnologies.com/aaram/mobile-about.php"*/,
                   "About Us");
             },
           ),
@@ -741,7 +828,8 @@ class _DashboardScreenState extends State<Dashboard> {
               Navigator.pop(context);
               _handleURLButtonPress(
                   context,
-                  "https://www.drugvillatechnologies.com/oncology/mobile-privacy.php",
+                  privacy_policy_url
+                  /*"https://www.drugvillatechnologies.com/aaram/mobile-privacy.php"*/,
                   "Privacy Policy");
             },
           ),
@@ -755,7 +843,8 @@ class _DashboardScreenState extends State<Dashboard> {
               Navigator.pop(context);
               _handleURLButtonPress(
                   context,
-                  "https://www.drugvillatechnologies.com/oncology/mobile-term.php",
+                  terms_url,
+                  /*"https://www.drugvillatechnologies.com/aaram/mobile-term.php",*/
                   "Terms & Condition");
             },
           ),
@@ -872,19 +961,6 @@ class _DashboardScreenState extends State<Dashboard> {
                                     )
                                   ],
                                 ))
-                            /* Positioned(
-                              right: -40.0,
-                              top: -40.0,
-                              child: InkResponse(
-                                onTap: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: CircleAvatar(
-                                  child: Icon(Icons.close),
-                                  backgroundColor: Colors.red,
-                                ),
-                              ),
-                            ),*/
                           ],
                         ),
                       );

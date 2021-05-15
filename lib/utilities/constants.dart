@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 final kHintTextStyle = TextStyle(
   color: Colors.black26,
@@ -20,6 +21,18 @@ const kPrimaryLightColor = Color(0xFFF1E6FF);
 final kBoxDecorationStyle = BoxDecoration(
   color: Colors.white,
   borderRadius: BorderRadius.circular(7.0),
+  boxShadow: [
+    BoxShadow(
+      color: Colors.black12,
+      blurRadius: 5.0,
+      offset: Offset(0, 2),
+    ),
+  ],
+);
+
+final grayBoxDecorationStyle = BoxDecoration(
+  color: Colors.white54,
+  borderRadius: BorderRadius.circular(15.0),
   boxShadow: [
     BoxShadow(
       color: Colors.black12,
@@ -54,6 +67,13 @@ final whiteBackground = BoxDecoration(
 
 final backGreen = BoxDecoration(
   color: Colors.lightGreen,
+  boxShadow: [
+    BoxShadow(
+      color: Colors.black12,
+      blurRadius: 5.0,
+      offset: Offset(0, 2),
+    ),
+  ],
 );
 
 final backGreenGradient = BoxDecoration(
@@ -126,4 +146,25 @@ Future<double> getDoubleValuesSF(String key) async {
 Future<void> removeValues(String Key) async {
   var pref = await SharedPreferences.getInstance();
   pref.remove(Key);
+}
+
+String formatDate(String date) {
+  DateTime dateTime = DateTime.parse(date);
+  String formattedDate = DateFormat('yyyy-MM-dd').format(dateTime);
+  return formattedDate;
+}
+
+Color setStatusColor(String bookingStatus) {
+  Color color = Color(0);
+  if (bookingStatus == "Cancelled" || bookingStatus == "Rejected") {
+    color = Colors.red;
+  } else if (bookingStatus == "Pending") {
+    color = Colors.blue;
+  } else if (bookingStatus == "Confirmed" || bookingStatus == "Completed") {
+    color = Colors.green;
+  } else {
+    color = Colors.black54;
+  }
+
+  return color;
 }

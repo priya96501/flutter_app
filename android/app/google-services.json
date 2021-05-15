@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "302490865207",
+    "project_id": "aaraam-be1a7",
+    "storage_bucket": "aaraam-be1a7.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:302490865207:android:e1083482f4488cf92979b2",
+        "android_client_info": {
+          "package_name": "com.flutter_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "302490865207-ecp7g9mqggiujq043kmski0fg1cg0usr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4swfCW8iLmrTyYSP3XWILNhSgiXKMetA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "302490865207-ecp7g9mqggiujq043kmski0fg1cg0usr.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

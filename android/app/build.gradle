@@ -22,6 +22,7 @@ if (flutterVersionName == null) {
 }
 
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
@@ -32,6 +33,7 @@ android {
         applicationId "com.flutter_app"
         minSdkVersion 19
         targetSdkVersion 30
+        multiDexEnabled true
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -43,8 +45,14 @@ android {
             signingConfig signingConfigs.debug
         }
     }
+
+
 }
 
 flutter {
     source '../..'
+}
+
+dependencies {
+    implementation 'com.google.firebase:firebase-messaging:20.1.0'
 }

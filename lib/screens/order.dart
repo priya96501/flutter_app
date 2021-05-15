@@ -25,8 +25,13 @@ class _OrderScreenWidget extends State<Order> {
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool viewVisible = false;
+  bool weighterrorVisible = false;
+  bool isPressedWeight = false;
   String price_data_ = '';
   String weight_data_ = '';
+  bool pressAttention = false;
+  List<String> description = ["1 kg", "2 kg", "5 kg", "10 kg", "20 kg"];
+  List<String> weight = ["1", "2", "5", "10", "20"];
 
   final TextEditingController from_mobile = new TextEditingController();
   final TextEditingController to_mobile = new TextEditingController();
@@ -44,6 +49,18 @@ class _OrderScreenWidget extends State<Order> {
   void hideWidget() {
     setState(() {
       viewVisible = false;
+    });
+  }
+
+  void showWeightError() {
+    setState(() {
+      weighterrorVisible = true;
+    });
+  }
+
+  void hideWeightError() {
+    setState(() {
+      weighterrorVisible = false;
     });
   }
 
@@ -66,7 +83,7 @@ class _OrderScreenWidget extends State<Order> {
         weight +
         "&order_description=" +
         order_description +
-        "&order_value =" +
+        "&order_value=" +
         order_value +
         "&type=app";
     var jsonResponse = null;
@@ -105,18 +122,23 @@ class _OrderScreenWidget extends State<Order> {
         elevation: 2.0,
         onPressed: () {
           if (formkey.currentState!.validate()) {
-            setState(() {
-              _isLoading = true;
-            });
-            submit(
-                from_address.text,
-                to_address.text,
-                from_mobile.text,
-                to_mobile.text,
-                order_value.text,
-                order_description.text,
-                weight_data_);
-            print("Validated");
+            if (isPressedWeight) {
+              setState(() {
+                _isLoading = true;
+              });
+              submit(
+                  from_address.text,
+                  to_address.text,
+                  from_mobile.text,
+                  to_mobile.text,
+                  order_value.text,
+                  order_description.text,
+                  weight_data_);
+              print("Validated");
+            } else {
+              showWeightError();
+              print("weight not selected");
+            }
           } else {
             print("Not Validated");
           }
@@ -203,7 +225,22 @@ class _OrderScreenWidget extends State<Order> {
             ],
           ),
         ),
-        SizedBox(height: 20.0),
+        SizedBox(height: 10.0),
+        Visibility(
+          maintainAnimation: true,
+          maintainState: true,
+          visible: weighterrorVisible,
+          child: Text(
+            '* Please select parcel weight',
+            textAlign: TextAlign.left,
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 13.0,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ),
+        SizedBox(height: 10.0),
         Visibility(
             maintainAnimation: true,
             maintainState: true,
@@ -220,10 +257,9 @@ class _OrderScreenWidget extends State<Order> {
                   SizedBox(height: 10.0),
                   Container(
                       decoration: kBoxDecorationStyle,
-                      // margin: EdgeInsets.all(15.0),
                       padding: EdgeInsets.all(15.0),
                       child: Column(children: <Widget>[
-                        Text("₹ "+price_data_,
+                        Text("₹ " + price_data_,
                             style: TextStyle(
                               fontFamily: 'OpenSans',
                               fontSize: 16.0,
@@ -235,50 +271,6 @@ class _OrderScreenWidget extends State<Order> {
                 ]))),
       ],
     );
-  }
-
-  Widget _buildData(String heading, String data) {
-    return Container(
-        width: 60,
-        // decoration: kBoxDecorationStyle,
-        child: RaisedButton(
-          elevation: 2.0,
-          padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5.0),
-          ),
-          color: Colors.white,
-          onPressed: () {
-            getPriceApi(data);
-          },
-          child: Column(
-            children: <Widget>[
-              Text(
-                'Up to',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontSize: 14.0,
-                  letterSpacing: 0.5,
-                  fontWeight: FontWeight.normal,
-                  color: Colors.black87,
-                ),
-              ),
-              SizedBox(height: 5.0),
-              Text(
-                heading,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'OpenSans',
-                  fontSize: 14.0,
-                  letterSpacing: 0.5,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-        ));
   }
 
   Widget _buildMobileFromTF() {
@@ -376,6 +368,7 @@ class _OrderScreenWidget extends State<Order> {
           child: TextFormField(
               keyboardType: TextInputType.number,
               controller: order_value,
+              maxLength: 6,
               cursorColor: Colors.lightGreen,
               style: TextStyle(
                 color: Colors.black54,
@@ -617,10 +610,101 @@ class _OrderScreenWidget extends State<Order> {
       print(data);
       print(weight);
       showWidget();
+      hideWeightError();
       price_data_ = data;
       weight_data_ = weight;
+      pressAttention = false;
+      isPressedWeight = true;
     } else {
       print(res);
     }
+  }
+
+  Widget _buildData(String heading, String data) {
+    return Container(
+        width: 60,
+        // decoration: kBoxDecorationStyle,
+        child: RaisedButton(
+          elevation: 2.0,
+          padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 5.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5.0),
+          ),
+          color: Colors.white,
+          onPressed: () {
+            getPriceApi(data);
+          },
+          child: Column(
+            children: <Widget>[
+              Text(
+                'Up to',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontSize: 14.0,
+                  letterSpacing: 0.5,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 5.0),
+              Text(
+                heading,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontSize: 14.0,
+                  letterSpacing: 0.5,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+        ));
+    /* child: ListView.builder(
+          itemCount: description.length,
+          itemBuilder: (BuildContext context, int index) {
+            return _tile(description[index].toString(), weight[index]);
+          },
+        ));*/
+  }
+
+  ListTile _tile(String title, String weight) => ListTile(
+        title: RaisedButton(
+            onPressed: () {
+              getPriceApi(weight);
+            },
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Wrap(children: <Widget>[
+                    Text("upto",
+                        style: TextStyle(
+                          letterSpacing: 0.5,
+                          fontFamily: 'OpenSans',
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.normal,
+                          color: Colors.black38,
+                        )),
+                    SizedBox(height: 5.0),
+                    Text(title,
+                        style: TextStyle(
+                          letterSpacing: 0.5,
+                          fontFamily: 'OpenSans',
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black38,
+                        )),
+                  ])
+                ])),
+      );
+
+  setColor(String data) {
+    if (data == "1") return Colors.white;
+    if (data == "5") return Colors.white;
+    if (data == "15") return Colors.white;
+    if (data == "10") return Colors.white;
+    if (data == "20") return Colors.white;
   }
 }
