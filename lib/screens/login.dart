@@ -15,15 +15,18 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _rememberMe = false;
   GlobalKey<FormState> formkey = GlobalKey<FormState>();
   GlobalKey<FormState> formkey2 = GlobalKey<FormState>();
+  GlobalKey<FormState> formkey3 = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _enable_mobile = true;
   bool viewVisible = false;
   bool viewVisibleCheckUSer = true;
   bool viewVisibleChangeNumber = false;
+  bool viewVisiblePassword = false;
   bool _isLogin = false;
   String? user_id;
   final TextEditingController mobileController = new TextEditingController();
   final TextEditingController otpController = new TextEditingController();
+  final TextEditingController passwordController = new TextEditingController();
 
   void showWidget() {
     setState(() {
@@ -34,6 +37,18 @@ class _LoginScreenState extends State<LoginScreen> {
   void hideChangeNumberWidget() {
     setState(() {
       viewVisibleChangeNumber = false;
+    });
+  }
+
+  void showWidgetPassword() {
+    setState(() {
+      viewVisiblePassword = true;
+    });
+  }
+
+  void hidePasswordWidget() {
+    setState(() {
+      viewVisiblePassword = false;
     });
   }
 
@@ -61,10 +76,10 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  Future<void> _checkUser(String mobile) async {
+  Future<void> _checkUser(String mobile, String type) async {
     String baseUrl =
         "https://www.drugvillatechnologies.com/aaram/api/checkuser.php?";
-    String finalUrl = baseUrl + "mobile=" + mobile + "&type=otp";
+    String finalUrl = baseUrl + "mobile=" + mobile + "&type=" + type;
     var jsonResponse = null;
     var response = await http.post(Uri.parse(finalUrl), headers: {
       "Accept": "application/json",
@@ -92,28 +107,33 @@ class _LoginScreenState extends State<LoginScreen> {
           print(_isLogin);
         }
 
-        final snackBar = SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.lightGreen,
-          margin: EdgeInsets.all(10.0),
-          elevation: 2.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(7.0),
-          ),
-          padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
-          content: Text('OTP send successfully!',
-              style: TextStyle(
-                  color: Colors.white,
-                  letterSpacing: 0.5,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.normal,
-                  fontFamily: 'OpenSans')),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        showWidget(); // show verify otp view
         showChangeNumberWidget(); // show change number button
         hideWidgetCheck(); // hide check user button
         _enable_mobile = false; // disable mobile textfield
+
+        if (type == "otp") {
+          final snackBar = SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.lightGreen,
+            margin: EdgeInsets.all(10.0),
+            elevation: 2.0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(7.0),
+            ),
+            padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
+            content: Text('OTP send successfully!',
+                style: TextStyle(
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                    fontSize: 16.0,
+                    fontWeight: FontWeight.normal,
+                    fontFamily: 'OpenSans')),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          showWidget(); // show verify otp view
+        } else {
+          showWidgetPassword();
+        }
       }
     } else {
       setState(() {
@@ -182,17 +202,20 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> loginApi(String text, String mobile) async {
+  Future<void> loginApi(String text, String mobile, String type) async {
     String baseUrl =
         "https://www.drugvillatechnologies.com/aaram/api/login.php?";
     String finalUrl = baseUrl +
         "mobile=" +
         mobile +
-        "&otp=" +
+        "&" +
+        type +
+        "=" +
         text +
         "&user_id=" +
         user_id! +
-        "&type=otp";
+        "&type=" +
+        type;
     var jsonResponse = null;
     var response = await http.post(Uri.parse(finalUrl), headers: {
       "Accept": "application/json",
@@ -380,6 +403,47 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Widget _buildPasswordWidget() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Password',
+          textAlign: TextAlign.left,
+          style: kLabelStyle,
+        ),
+        SizedBox(height: 5.0),
+        Container(
+          child: TextFormField(
+              controller: passwordController,
+              obscureText: true,
+              cursorColor: Colors.lightGreen,
+              maxLines: 1,
+              maxLength: 16,
+              style: TextStyle(
+                color: Colors.black54,
+                fontFamily: 'OpenSans',
+              ),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(6.0)),
+                prefixIcon: Icon(
+                  Icons.password,
+                  color: Colors.black26,
+                ),
+                hintText: 'Enter your password',
+                hintStyle: kHintTextStyle,
+              ),
+              validator: MultiValidator([
+                RequiredValidator(errorText: "* Please enter your password"),
+                MinLengthValidator(6,
+                    errorText: 'Password should be 6 characters long.')
+              ])),
+        ),
+      ],
+    );
+  }
+
   Widget _buildOTPWidget() {
     return Column(
       children: <Widget>[
@@ -506,7 +570,7 @@ class _LoginScreenState extends State<LoginScreen> {
               _isLoading = true;
             });
             if (_isLogin) {
-              loginApi(otpController.text, mobileController.text);
+              loginApi(otpController.text, mobileController.text, "otp");
             } else {
               signupApi(otpController.text, mobileController.text);
             }
@@ -535,23 +599,23 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildCheckUserButton() {
+  Widget _buildPasswordLoginButton() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 30.0),
+      padding: EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
       child: RaisedButton(
         elevation: 2.0,
         onPressed: () {
-          if (formkey.currentState!.validate()) {
+          if (formkey3.currentState!.validate()) {
             setState(() {
               _isLoading = true;
             });
-            _checkUser(mobileController.text);
+            loginApi(
+                passwordController.text, mobileController.text, "password");
             print("Validated");
           } else {
             print("Not Validated");
           }
-          // addStringToSF('IS_LOGIN', 'AARAAM');
         },
         padding: EdgeInsets.all(15.0),
         shape: RoundedRectangleBorder(
@@ -572,6 +636,78 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  Widget _buildCheckUserButton() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 30.0),
+      width: double.infinity,
+      child: RaisedButton(
+        elevation: 2.0,
+        onPressed: () {
+          if (formkey.currentState!.validate()) {
+            setState(() {
+              _isLoading = true;
+            });
+            _checkUser(mobileController.text, "otp");
+            print("Validated");
+          } else {
+            print("Not Validated");
+          }
+        },
+        padding: EdgeInsets.all(15.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30.0),
+        ),
+        color: Colors.lightGreen,
+        child: Text(
+          'Login Using OTP',
+          style: TextStyle(
+            color: Colors.white,
+            letterSpacing: 0.5,
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'OpenSans',
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordButton() {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 30.0),
+      width: double.infinity,
+      child: RaisedButton(
+        elevation: 2.0,
+        onPressed: () {
+          if (formkey.currentState!.validate()) {
+            setState(() {
+              _isLoading = true;
+            });
+            _checkUser(mobileController.text, "password");
+            print("Validated");
+          } else {
+            print("Not Validated");
+          }
+        },
+        padding: EdgeInsets.all(15.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30.0),
+        ),
+        color: Colors.lightGreen,
+        child: Text(
+          'Login Through Password',
+          style: TextStyle(
+            color: Colors.white,
+            letterSpacing: 0.5,
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'OpenSans',
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSignInWithText() {
     return Column(
       children: <Widget>[
@@ -582,11 +718,11 @@ class _LoginScreenState extends State<LoginScreen> {
             fontWeight: FontWeight.w400,
           ),
         ),
-        SizedBox(height: 20.0),
-        Text(
+        //SizedBox(height: 20.0),
+        /* Text(
           'Sign in with',
           style: kLabelStyle,
-        ),
+        ),*/
       ],
     );
   }
@@ -737,6 +873,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                           child: Container(
                                               child: Column(children: <Widget>[
                                             _buildCheckUserButton(),
+                                            _buildSignInWithText(),
+                                            _buildPasswordButton(),
                                           ])))
                                     ]))),
                             Visibility(
@@ -749,15 +887,32 @@ class _LoginScreenState extends State<LoginScreen> {
                                         //check for validation while typing
                                         key: formkey2,
                                         child: Column(
-                                           /* crossAxisAlignment:
+                                            /* crossAxisAlignment:
                                                 CrossAxisAlignment.start,*/
                                             children: <Widget>[
                                               _buildOTPWidget(),
                                               SizedBox(height: 10.0),
                                               _buildVerifyButton(),
                                             ])))),
-                            _buildSignInWithText(),
-                            _buildSocialBtnRow(),
+                            Visibility(
+                                maintainAnimation: true,
+                                maintainState: true,
+                                visible: viewVisiblePassword,
+                                child: Container(
+                                    child: Form(
+                                        autovalidate: true,
+                                        //check for validation while typing
+                                        key: formkey3,
+                                        child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: <Widget>[
+                                              _buildPasswordWidget(),
+                                              SizedBox(height: 10.0),
+                                              _buildPasswordLoginButton(),
+                                            ])))),
+                            /*_buildSignInWithText(),*/
+                            /*  _buildSocialBtnRow(),*/
                             /*_buildSignupBtn(),*/
                           ],
                         ),

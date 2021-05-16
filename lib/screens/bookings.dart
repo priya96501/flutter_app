@@ -92,6 +92,28 @@ class _BookingsWidget extends State<Bookings> {
         setState(() {
           _isLoading = false;
         });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        final snackBar = SnackBar(
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.lightGreen,
+          margin: EdgeInsets.all(10.0),
+          elevation: 2.0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(7.0),
+          ),
+          padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
+          content: Text('No bookings found!',
+              style: TextStyle(
+                  color: Colors.white,
+                  letterSpacing: 0.5,
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.normal,
+                  fontFamily: 'OpenSans')),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
       }
     } else {
       setState(() {
