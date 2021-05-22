@@ -23,8 +23,6 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   english_words: ^4.0.0-0
   carousel_slider: ^4.0.0-nullsafety.0
@@ -36,22 +34,16 @@ dependencies:
   firebase_core: ^1.1.1
   firebase_messaging: ^9.1.4
   overlay_support: ^1.2.1
-
+  url_launcher: ^6.0.3
+  share: ^2.0.1
+  shimmer: ^2.0.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter.
 flutter:
 
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
@@ -79,6 +71,17 @@ flutter:
     - assets/images/booking.png
     - assets/images/pricing.png
     - assets/images/one.png
+    - assets/images/noorder.png
+
+  fonts:
+        - family: Roboto
+          fonts:
+            - asset: assets/fonts/Roboto-Medium.ttf
+
+        - family: OpenSans
+          fonts:
+            - asset: assets/fonts/OpenSans.ttf
+
 
 
 

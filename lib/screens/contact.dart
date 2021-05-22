@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:Aaraam/utilities/constants.dart';
 import 'package:flutter/material.dart';
@@ -99,14 +100,40 @@ class _ContactScreenWidget extends State<Contact> {
       width: double.infinity,
       child: RaisedButton(
         elevation: 2.0,
-        onPressed: () {
+        onPressed: () async {
           if (formkey.currentState!.validate()) {
-            setState(() {
-              _isLoading = true;
-            });
-            submitContactForm(emailController.text, nameController.text,
-                mobileController.text, messageController.text);
-            print("Validated");
+            try {
+              print("Validated");
+              final result = await InternetAddress.lookup('aaraam.com');
+              if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+                print('connected');
+                setState(() {
+                  _isLoading = true;
+                });
+                submitContactForm(emailController.text, nameController.text,
+                    mobileController.text, messageController.text);
+              }
+            } on SocketException catch (_) {
+              final snackBar = SnackBar(
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: Colors.lightGreen,
+                margin: EdgeInsets.all(10.0),
+                elevation: 2.0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(7.0),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
+                content: Text('No Internet Connection!',
+                    style: TextStyle(
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.normal,
+                        fontFamily: 'OpenSans')),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+              print('not connected');
+            }
           } else {
             print("Not Validated");
           }
@@ -429,7 +456,8 @@ class _ContactScreenWidget extends State<Contact> {
             color: Colors.white,
             fontFamily: 'OpenSans',
             letterSpacing: 0.5,
-            fontSize: 18.0,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold
           ),
         ),
         backgroundColor: Colors.lightGreen,

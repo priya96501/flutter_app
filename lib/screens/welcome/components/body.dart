@@ -45,6 +45,7 @@ class Body extends StatelessWidget {
                   child: Text(
                     "CONTINUE",
                     style: TextStyle(
+                      fontFamily: 'OpenSans',
                         color: Colors.white, letterSpacing: 1, fontSize: 16.0),
                   ),
                 ),

@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:Aaraam/utilities/Users.dart';
 import 'package:http/http.dart' as http;
 import 'package:Aaraam/utilities/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 
 import 'dashboard.dart';
 
@@ -19,6 +22,7 @@ class CustomDialog extends StatefulWidget {
 class _CustomDialogState extends State<CustomDialog> {
   String booking_id = '', user_id = '';
   bool _isLoading = false;
+  List<Reasons> listModel = [];
 
   @override
   void initState() {
@@ -26,7 +30,37 @@ class _CustomDialogState extends State<CustomDialog> {
     setState(() {
       _isLoading = true;
     });
-    fetchCancellationReason();
+    getData();
+  }
+
+  getData() async {
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        print('connected');
+        fetchCancellationReason();
+      }
+    } on SocketException catch (_) {
+      final snackBar = SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.lightGreen,
+        margin: EdgeInsets.all(10.0),
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(7.0),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
+        content: Text('No Internet Connection!',
+            style: TextStyle(
+                color: Colors.white,
+                letterSpacing: 0.5,
+                fontSize: 16.0,
+                fontWeight: FontWeight.normal,
+                fontFamily: 'OpenSans')),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      print('not connected');
+    }
   }
 
   _CustomDialogState(this.booking_id) {
@@ -35,8 +69,6 @@ class _CustomDialogState extends State<CustomDialog> {
         }));
   }
 
-  List<String> reasons_ = [];
-  List<String> reasons_id = [];
   bool canUpload = false;
   String selectedvalue = '';
 
@@ -47,19 +79,19 @@ class _CustomDialogState extends State<CustomDialog> {
 
     if (jsonResponse.statusCode == 200) {
       var response = json.decode(jsonResponse.body);
+      print(response);
       print(jsonResponse.statusCode);
       Map<String, dynamic> map = response;
       List<dynamic> data = map["data"];
       List<Map<String, dynamic>> jsonItems = data.cast<Map<String, dynamic>>();
-      print(jsonItems.length);
-      for (var i = 0; i < jsonItems.length; i++) {
-        reasons_.add(jsonItems[i]["reason"]);
-        reasons_id.add(jsonItems[i]["id"]);
-      }
-      print(reasons_.toString());
-      print(reasons_id.toString());
+
       setState(() {
         _isLoading = false;
+        listModel = (response["data"] as List)
+            .map<Reasons>((json) => new Reasons.fromJson(json))
+            .toList();
+
+        print(listModel.length);
       });
     } else {
       setState(() {
@@ -89,7 +121,6 @@ class _CustomDialogState extends State<CustomDialog> {
         Map<String, dynamic> map = jsonResponse;
         String? status = map["status"];
         if (status == '1') {
-          print("hii");
           final snackBar = SnackBar(
             behavior: SnackBarBehavior.floating,
             backgroundColor: Colors.lightGreen,
@@ -126,18 +157,61 @@ class _CustomDialogState extends State<CustomDialog> {
         title: Text(
           "Cancel Booking",
           style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'OpenSans',
-            letterSpacing: 0.5,
-            fontSize: 18.0,
-          ),
+              color: Colors.white,
+              fontFamily: 'OpenSans',
+              letterSpacing: 0.5,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.lightGreen,
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Shimmer.fromColors(
+                child: ListView.builder(
+                  itemCount: 9,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: Icon(Icons.image, size: 50.0),
+                      title: SizedBox(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5.0),
+                            ),
+                            Container(
+                              decoration: shimmerBoxDecorationStyle,
+                              width: double.infinity,
+                              height: 12.0,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5.0),
+                            ),
+                            Container(
+                              width: 100.0,
+                              height: 12.0,
+                              decoration: shimmerBoxDecorationStyle,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5.0),
+                            ),
+                            Container(
+                              width: 40.0,
+                              height: 12.0,
+                              decoration: shimmerBoxDecorationStyle,
+                            ),
+                          ],
+                        ),
+                        /* height: 20.0,*/
+                      ),
+                    );
+                  },
+                ),
+                baseColor: Color(0xFFE0E0E0),
+                highlightColor: Colors
+                    .black12) /*Center(child: CircularProgressIndicator())*/
             : GestureDetector(
                 onTap: () => FocusScope.of(context).unfocus(),
                 child: Stack(
@@ -187,15 +261,14 @@ class _CustomDialogState extends State<CustomDialog> {
                                     margin: EdgeInsets.symmetric(
                                         vertical: 15.0, horizontal: 10.0),
                                     child: ListView.builder(
-                                      itemCount: reasons_id.length,
+                                      itemCount: listModel.length,
                                       itemBuilder:
                                           (BuildContext context, int index) {
                                         return RadioListTile(
-                                          value: reasons_id[index].toString(),
+                                          value: listModel[index].id,
                                           groupValue: selectedvalue,
                                           activeColor: Colors.green,
-                                          title: Text(
-                                              reasons_[index].toString(),
+                                          title: Text(listModel[index].reason,
                                               textAlign: TextAlign.left,
                                               style: TextStyle(
                                                 letterSpacing: 0.5,
@@ -226,9 +299,53 @@ class _CustomDialogState extends State<CustomDialog> {
                                       ),
                                       color: Colors.lightGreen,
                                       onPressed: canUpload
-                                          ? () {
-                                              print("upload");
-                                              cancelBooking();
+                                          ? () async {
+                                              try {
+                                                print("Validated");
+                                                final result =
+                                                    await InternetAddress
+                                                        .lookup('aaraam.com');
+                                                if (result.isNotEmpty &&
+                                                    result[0]
+                                                        .rawAddress
+                                                        .isNotEmpty) {
+                                                  print('connected');
+                                                  setState(() {
+                                                    _isLoading = true;
+                                                  });
+                                                  cancelBooking();
+                                                }
+                                              } on SocketException catch (_) {
+                                                final snackBar = SnackBar(
+                                                  behavior:
+                                                      SnackBarBehavior.floating,
+                                                  backgroundColor:
+                                                      Colors.lightGreen,
+                                                  margin: EdgeInsets.all(10.0),
+                                                  elevation: 2.0,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            7.0),
+                                                  ),
+                                                  padding: EdgeInsets.symmetric(
+                                                      vertical: 3.0,
+                                                      horizontal: 15.0),
+                                                  content: Text(
+                                                      'No Internet Connection!',
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          letterSpacing: 0.5,
+                                                          fontSize: 16.0,
+                                                          fontWeight:
+                                                              FontWeight.normal,
+                                                          fontFamily:
+                                                              'OpenSans')),
+                                                );
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(snackBar);
+                                                print('not connected');
+                                              }
                                             }
                                           : null,
                                       child: Text('Cancel Order',

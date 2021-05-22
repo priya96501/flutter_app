@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:Aaraam/screens/home.dart';
 import 'package:http/http.dart' as http;
 import 'package:Aaraam/screens/bookings.dart';
 import 'package:Aaraam/screens/login.dart';
@@ -10,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/services.dart';
 import 'package:Aaraam/screens/contact.dart';
+import 'package:shimmer/shimmer.dart';
 
 final List<String> imgList = [
   'https://www.drugvillatechnologies.com/aaram/images/banner2.jpg',
@@ -70,6 +73,8 @@ final List<Widget> imageSliders = imgList
     .toList();
 
 class _DashboardScreenState extends State<Dashboard> {
+  //final CallsAndMessagesService _service = locator<CallsAndMessagesService>();
+
   int _current = 0;
   String name = '', user_id = '';
   String mobile = '',
@@ -88,19 +93,47 @@ class _DashboardScreenState extends State<Dashboard> {
     getStringValuesSF("USER_MOBILE").then((val) => setState(() {
           mobile = val;
         }));
+
+    // setupLocator();
   }
 
   @override
   void initState() {
     super.initState();
-    getStringValuesSF("USER_ID").then((val) => setState(() {
+    getStringValuesSF("USER_ID").then((val) => setState(() async {
           user_id = val;
           print("user_id : " + user_id);
-          fetchJSONData(user_id);
+          setState(() {
+            _isLoading = true;
+          });
+          try {
+            final result = await InternetAddress.lookup('example.com');
+            if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+              fetchJSONData(user_id);
+              print('connected');
+            }
+          } on SocketException catch (_) {
+            final snackBar = SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.lightGreen,
+              margin: EdgeInsets.all(10.0),
+              elevation: 2.0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(7.0),
+              ),
+              padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
+              content: Text('No Internet Connection!',
+                  style: TextStyle(
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.normal,
+                      fontFamily: 'OpenSans')),
+            );
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            print('not connected');
+          }
         }));
-    setState(() {
-      _isLoading = true;
-    });
   }
 
   fetchJSONData(String userid) async {
@@ -157,8 +190,8 @@ class _DashboardScreenState extends State<Dashboard> {
             style: TextStyle(
               letterSpacing: 0.5,
               fontFamily: 'OpenSans',
-              fontSize: 16.0,
-              fontWeight: FontWeight.bold,
+              fontSize: 15.0,
+              fontWeight: FontWeight.normal,
               color: Colors.black87,
             ),
           ),
@@ -169,7 +202,7 @@ class _DashboardScreenState extends State<Dashboard> {
             style: TextStyle(
               letterSpacing: 0.5,
               fontFamily: 'OpenSans',
-              fontSize: 14.0,
+              fontSize: 13.0,
               fontWeight: FontWeight.normal,
               color: Colors.black38,
             ),
@@ -281,12 +314,12 @@ class _DashboardScreenState extends State<Dashboard> {
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     fontFamily: 'OpenSans',
-                    fontSize: 15.0,
-                    fontWeight: FontWeight.normal,
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                 ),
-                SizedBox(height: 5.0),
+                SizedBox(height: 3.0),
                 Text(
                   'Low-priced same day delivery service!',
                   textAlign: TextAlign.left,
@@ -340,7 +373,6 @@ class _DashboardScreenState extends State<Dashboard> {
                       letterSpacing: 0.5,
                       fontFamily: 'OpenSans',
                       fontSize: 14.0,
-                      fontWeight: FontWeight.normal,
                       color: Colors.black38,
                     ),
                   ),
@@ -420,7 +452,7 @@ class _DashboardScreenState extends State<Dashboard> {
             style: TextStyle(
               color: Colors.black54,
               fontFamily: 'OpenSans',
-              fontSize: 16.0,
+              fontSize: 15.0,
               fontWeight: FontWeight.w300,
             ),
           ),
@@ -440,10 +472,11 @@ class _DashboardScreenState extends State<Dashboard> {
           SizedBox(height: 15.0),
           Container(
             child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                //  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
-                  _buildContactInfo("Call us at", company_mobile),
-                  _buildContactInfo(" Email us on", company_email),
+                  _buildContactInfo("Call us at", company_mobile, "mobile"),
+                  _buildContactInfo(" Email us on", company_email, "email"),
                 ]),
           ),
           SizedBox(height: 20.0),
@@ -487,24 +520,22 @@ class _DashboardScreenState extends State<Dashboard> {
     );
   }
 
-  Widget _buildContactInfo(String heading, String data) {
+  Widget _buildContactInfo(String heading, String data, String type) {
     return Container(
         margin: EdgeInsets.symmetric(horizontal: 7.0),
         child: RaisedButton(
           padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(7.0),
+            side: BorderSide(color: Colors.lightGreen, width: 1),
           ),
           color: Colors.white,
-          elevation: 1.0,
-          onPressed: () {
-            /* DialPad(
-                enableDtmf: true,
-                outputMask: data,
-                backspaceButtonIconColor: Colors.red,
-                makeCall: (number) {
-                  print(number);
-                });*/
+          onPressed: () async {
+            if (type == "email") {
+              launchEmailSubmission(data);
+            } else {
+              launchCallSubmission(data);
+            }
           },
           child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -561,7 +592,6 @@ class _DashboardScreenState extends State<Dashboard> {
       padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 10.0),
       decoration: kBoxDecorationStyle,
       width: size.width * 0.43,
-      // width: 180.0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
@@ -572,9 +602,9 @@ class _DashboardScreenState extends State<Dashboard> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'OpenSans',
-              fontSize: 16.0,
+              fontSize: 15.0,
               letterSpacing: 0.5,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.normal,
               color: Colors.black87,
             ),
           ),
@@ -585,7 +615,7 @@ class _DashboardScreenState extends State<Dashboard> {
             style: TextStyle(
               letterSpacing: 0.5,
               fontFamily: 'OpenSans',
-              fontSize: 14.0,
+              fontSize: 13.0,
               fontWeight: FontWeight.normal,
               color: Colors.black38,
             ),
@@ -602,21 +632,86 @@ class _DashboardScreenState extends State<Dashboard> {
     return Scaffold(
       appBar: AppBar(
         brightness: Brightness.dark,
-        title: Text(
-          title,
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'OpenSans',
-            letterSpacing: 0.5,
-            fontSize: 18.0,
+        /* leading: new Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: new Material(
+            shape: new CircleBorder(),
           ),
+        ),*/
+
+        title: Row(
+          children: [
+            Container(
+              margin: EdgeInsets.only(right: 14, bottom: 15, top: 15, left: 0),
+              width: 55.0,
+              height: 50.0,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/delivery_3.png'),
+                ),
+              ),
+            ),
+            Text(
+              title,
+              style: TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'OpenSans',
+                  letterSpacing: 0.5,
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
         backgroundColor: Colors.lightGreen,
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Shimmer.fromColors(
+                child: ListView.builder(
+                  itemCount: 9,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      leading: Icon(Icons.image, size: 50.0),
+                      title: SizedBox(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5.0),
+                            ),
+                            Container(
+                              decoration: shimmerBoxDecorationStyle,
+                              width: double.infinity,
+                              height: 12.0,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5.0),
+                            ),
+                            Container(
+                              width: 100.0,
+                              height: 12.0,
+                              decoration: shimmerBoxDecorationStyle,
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 5.0),
+                            ),
+                            Container(
+                              width: 40.0,
+                              height: 12.0,
+                              decoration: shimmerBoxDecorationStyle,
+                            ),
+                          ],
+                        ),
+                        /* height: 20.0,*/
+                      ),
+                    );
+                  },
+                ),
+                baseColor: Color(0xFFE0E0E0),
+                highlightColor: Colors.black12)
+            /*highlightColor: Color(0xFFBDBDBD))*/
+            /*Center(child: CircularProgressIndicator())*/
             : GestureDetector(
                 onTap: () => FocusScope.of(context).unfocus(),
                 child: Stack(
@@ -717,15 +812,13 @@ class _DashboardScreenState extends State<Dashboard> {
             accountName: Text(
               name,
               style: TextStyle(
-                fontSize: 16.0,
-              ),
+                  fontSize: 16.0, fontFamily: 'OpenSans', letterSpacing: 0.5),
             ),
             accountEmail: Text(
               //email,
               mobile,
               style: TextStyle(
-                fontSize: 14.0,
-              ),
+                  fontSize: 14.0, fontFamily: 'OpenSans', letterSpacing: 0.5),
             ),
             currentAccountPicture: CircleAvatar(
               backgroundColor: Colors.white,
@@ -744,9 +837,24 @@ class _DashboardScreenState extends State<Dashboard> {
               Icons.home,
               color: Colors.black26,
             ),
-            title: Text("Home"),
+            title: Text(
+              "Home",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'OpenSans',
+                  letterSpacing: 0.5),
+            ),
             onTap: () {
               Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return Home();
+                  },
+                ),
+              );
             },
           ),
           ListTile(
@@ -754,7 +862,14 @@ class _DashboardScreenState extends State<Dashboard> {
               Icons.book_rounded,
               color: Colors.black26,
             ),
-            title: Text("My Bookings"),
+            title: Text(
+              "My Bookings",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'OpenSans',
+                  letterSpacing: 0.5),
+            ),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -772,7 +887,14 @@ class _DashboardScreenState extends State<Dashboard> {
               Icons.border_color,
               color: Colors.black26,
             ),
-            title: Text("Book Courier"),
+            title: Text(
+              "Book Courier",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'OpenSans',
+                  letterSpacing: 0.5),
+            ),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -790,7 +912,14 @@ class _DashboardScreenState extends State<Dashboard> {
               Icons.price_check,
               color: Colors.black26,
             ),
-            title: Text("Pricing"),
+            title: Text(
+              "Pricing",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'OpenSans',
+                  letterSpacing: 0.5),
+            ),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(
@@ -805,10 +934,42 @@ class _DashboardScreenState extends State<Dashboard> {
           ),
           ListTile(
             leading: Icon(
+              Icons.contacts,
+              color: Colors.black26,
+            ),
+            title: Text(
+              "Contact Us",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'OpenSans',
+                  letterSpacing: 0.5),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return Contact();
+                  },
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(
               Icons.account_box,
               color: Colors.black26,
             ),
-            title: Text("About Us"),
+            title: Text(
+              "About Us",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'OpenSans',
+                  letterSpacing: 0.5),
+            ),
             onTap: () {
               Navigator.pop(context);
               _handleURLButtonPress(
@@ -823,7 +984,14 @@ class _DashboardScreenState extends State<Dashboard> {
               Icons.policy,
               color: Colors.black26,
             ),
-            title: Text("Privacy Policy"),
+            title: Text(
+              "Privacy Policy",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'OpenSans',
+                  letterSpacing: 0.5),
+            ),
             onTap: () {
               Navigator.pop(context);
               _handleURLButtonPress(
@@ -838,7 +1006,15 @@ class _DashboardScreenState extends State<Dashboard> {
               Icons.perm_device_information,
               color: Colors.black26,
             ),
-            title: Text("Terms & Condition"),
+            title: Text(
+              "Terms & Condition",
+              style: TextStyle(
+                color: Colors.black,
+                letterSpacing: 0.5,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'OpenSans',
+              ),
+            ),
             onTap: () {
               Navigator.pop(context);
               _handleURLButtonPress(
@@ -850,20 +1026,19 @@ class _DashboardScreenState extends State<Dashboard> {
           ),
           ListTile(
             leading: Icon(
-              Icons.contacts,
+              Icons.share,
               color: Colors.black26,
             ),
-            title: Text("Contact Us"),
+            title: Text(
+              "Share App",
+              style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'OpenSans',
+                  letterSpacing: 0.5),
+            ),
             onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return Contact();
-                  },
-                ),
-              );
+              ShareApp(context);
             },
           ),
           ListTile(
@@ -871,7 +1046,14 @@ class _DashboardScreenState extends State<Dashboard> {
                 Icons.logout,
                 color: Colors.black26,
               ),
-              title: Text("Logout"),
+              title: Text(
+                "Logout",
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'OpenSans',
+                    letterSpacing: 0.5),
+              ),
               onTap: () {
                 Navigator.pop(context);
                 showDialog(

@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:Aaraam/utilities/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 import 'cancelorder.dart';
 
 class BookingDetail extends StatefulWidget {
@@ -65,13 +67,43 @@ class _BookingDetailWidget extends State<BookingDetail> {
   }
 
   @override
-  void initState() {
+  initState() {
     super.initState();
     setState(() {
       _isLoading = true;
     });
-    fetchJSONData();
-    fetchCancellationReason();
+    getDetailData();
+  }
+
+  getDetailData() async {
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        print('connected');
+        fetchJSONData();
+        fetchCancellationReason();
+      }
+    } on SocketException catch (_) {
+      final snackBar = SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.lightGreen,
+        margin: EdgeInsets.all(10.0),
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(7.0),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
+        content: Text('No Internet Connection!',
+            style: TextStyle(
+                color: Colors.white,
+                letterSpacing: 0.5,
+                fontSize: 16.0,
+                fontWeight: FontWeight.normal,
+                fontFamily: 'OpenSans')),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      print('not connected');
+    }
   }
 
   fetchJSONData() async {
@@ -163,79 +195,122 @@ class _BookingDetailWidget extends State<BookingDetail> {
         title: Text(
           "Booking Detail",
           style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'OpenSans',
-            letterSpacing: 0.5,
-            fontSize: 18.0,
-          ),
+              color: Colors.white,
+              fontFamily: 'OpenSans',
+              letterSpacing: 0.5,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.lightGreen,
       ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Shimmer.fromColors(
+            child: ListView.builder(
+              itemCount: 9,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: Icon(Icons.image, size: 50.0),
+                  title: SizedBox(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5.0),
+                        ),
+                        Container(
+                          decoration: shimmerBoxDecorationStyle,
+                          width: double.infinity,
+                          height: 12.0,
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5.0),
+                        ),
+                        Container(
+                          width: 100.0,
+                          height: 12.0,
+                          decoration: shimmerBoxDecorationStyle,
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5.0),
+                        ),
+                        Container(
+                          width: 40.0,
+                          height: 12.0,
+                          decoration: shimmerBoxDecorationStyle,
+                        ),
+                      ],
+                    ),
+                    /* height: 20.0,*/
+                  ),
+                );
+              },
+            ),
+            baseColor: Color(0xFFE0E0E0),
+            highlightColor: Colors.black12)
+            /*Center(child: CircularProgressIndicator())*/
             : GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Stack(
-            children: <Widget>[
-              Container(
-                height: double.infinity,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
+                onTap: () => FocusScope.of(context).unfocus(),
+                child: Stack(
+                  children: <Widget>[
+                    Container(
+                      height: double.infinity,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                      ),
+                    ),
+                    Container(
+                      height: double.infinity,
+                      child: SingleChildScrollView(
+                        physics: AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 25.0,
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            SizedBox(height: 15.0),
+                            Text(
+                              'Order #' + booking_id,
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                letterSpacing: 0.5,
+                                fontFamily: 'OpenSans',
+                                fontSize: 20.0,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            SizedBox(height: 5.0),
+                            Text(
+                              'charges- ₹' + charges,
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                letterSpacing: 0.5,
+                                fontFamily: 'OpenSans',
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            _buildOrderStatus(size),
+                            _buildOrderDetailSection(),
+                            _buildAddressSection(size),
+                            Visibility(
+                              maintainAnimation: true,
+                              maintainState: true,
+                              visible: viewCancelVisible,
+                              child: _buildCancelBtn(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  ],
                 ),
               ),
-              Container(
-                height: double.infinity,
-                child: SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.symmetric(
-                    vertical: 25.0,
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: <Widget>[
-                      SizedBox(height: 15.0),
-                      Text(
-                        'Order #' + booking_id,
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          letterSpacing: 0.5,
-                          fontFamily: 'OpenSans',
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 5.0),
-                      Text(
-                        'charges- ₹' + charges,
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          letterSpacing: 0.5,
-                          fontFamily: 'OpenSans',
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.normal,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      _buildOrderStatus(size),
-                      _buildOrderDetailSection(),
-                      _buildAddressSection(size),
-                      Visibility(
-                        maintainAnimation: true,
-                        maintainState: true,
-                        visible: viewCancelVisible,
-                        child: _buildCancelBtn(),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -333,8 +408,10 @@ class _BookingDetailWidget extends State<BookingDetail> {
       child: RaisedButton(
         elevation: 2.0,
         onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => CustomDialog(booking_id)));
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => CustomDialog(booking_id)));
         },
         padding: EdgeInsets.all(15.0),
         shape: RoundedRectangleBorder(
@@ -603,4 +680,3 @@ class _BookingDetailWidget extends State<BookingDetail> {
     );
   }
 }
-

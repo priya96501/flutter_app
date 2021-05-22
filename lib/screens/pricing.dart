@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:Aaraam/utilities/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shimmer/shimmer.dart';
 
 import 'order.dart';
 import 'package:http/http.dart' as http;
@@ -30,40 +33,66 @@ class _PricingStateWidget extends State<Pricing> {
   }
 
   fetchJSONData() async {
-    var jsonResponse = await http.get(Uri.parse(apiURL));
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        var jsonResponse = await http.get(Uri.parse(apiURL));
 
-    if (jsonResponse.statusCode == 200) {
-      var response = json.decode(jsonResponse.body);
-      print(jsonResponse.statusCode);
-      print(response);
+        if (jsonResponse.statusCode == 200) {
+          var response = json.decode(jsonResponse.body);
+          print(jsonResponse.statusCode);
+          print(response);
 
-      /*Map<String, dynamic> map = response;
+          /*Map<String, dynamic> map = response;
       List<dynamic> data = map["data"];
       List<Map<String, dynamic>> jsonItems = data.cast<Map<String, dynamic>>();
       print(jsonItems.length);*/
 
-      List<Map<String, dynamic>> jsonItems =
-          json.decode(jsonResponse.body).cast<Map<String, dynamic>>();
-      print(jsonItems.length);
+          List<Map<String, dynamic>> jsonItems =
+              json.decode(jsonResponse.body).cast<Map<String, dynamic>>();
+          print(jsonItems.length);
 
-      for (var i = 0; i < jsonItems.length; i++) {
-        charges.add(jsonItems[i]["charges"]);
-        weight.add(jsonItems[i]["weight"]);
-        description.add(jsonItems[i]["description"]);
-      }
-      setState(() {
-        _isLoading = false;
-      });
+          for (var i = 0; i < jsonItems.length; i++) {
+            charges.add(jsonItems[i]["charges"]);
+            weight.add(jsonItems[i]["weight"]);
+            description.add(jsonItems[i]["description"]);
+          }
+          setState(() {
+            _isLoading = false;
+          });
 
-      /* List<GetUsers> usersList = jsonItems.map<GetUsers>((json) {
+          /* List<GetUsers> usersList = jsonItems.map<GetUsers>((json) {
         return GetUsers.fromJson(json);
       }).toList();*/
 
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-      throw Exception('Failed to load data from internet');
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+          throw Exception('Failed to load data from internet');
+        }
+        print('connected');
+      }
+    } on SocketException catch (_) {
+      final snackBar = SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.lightGreen,
+        margin: EdgeInsets.all(10.0),
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(7.0),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
+        content: Text('No Internet Connection!',
+            style: TextStyle(
+                color: Colors.white,
+                letterSpacing: 0.5,
+                fontSize: 16.0,
+                fontWeight: FontWeight.normal,
+                fontFamily: 'OpenSans')),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      print('not connected');
     }
   }
 
@@ -78,7 +107,8 @@ class _PricingStateWidget extends State<Pricing> {
             color: Colors.white,
             fontFamily: 'OpenSans',
             letterSpacing: 0.5,
-            fontSize: 18.0,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold
           ),
         ),
         backgroundColor: Colors.lightGreen,
@@ -86,7 +116,49 @@ class _PricingStateWidget extends State<Pricing> {
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: _isLoading
-            ? Center(child: CircularProgressIndicator())
+            ? Shimmer.fromColors(
+            child: ListView.builder(
+              itemCount: 9,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  leading: Icon(Icons.image, size: 50.0),
+                  title: SizedBox(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5.0),
+                        ),
+                        Container(
+                          decoration: shimmerBoxDecorationStyle,
+                          width: double.infinity,
+                          height: 12.0,
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5.0),
+                        ),
+                        Container(
+                          width: 100.0,
+                          height: 12.0,
+                          decoration: shimmerBoxDecorationStyle,
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5.0),
+                        ),
+                        Container(
+                          width: 40.0,
+                          height: 12.0,
+                          decoration: shimmerBoxDecorationStyle,
+                        ),
+                      ],
+                    ),
+                    /* height: 20.0,*/
+                  ),
+                );
+              },
+            ),
+            baseColor: Color(0xFFE0E0E0),
+            highlightColor: Colors.black12)/*Center(child: CircularProgressIndicator())*/
             : GestureDetector(
                 onTap: () => FocusScope.of(context).unfocus(),
                 child: Stack(

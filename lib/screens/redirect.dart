@@ -29,7 +29,8 @@ class _WebViewContainerState extends State<WebViewContainer> {
               color: Colors.white,
               fontFamily: 'OpenSans',
               letterSpacing: 0.5,
-              fontSize: 18.0,
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold
             ),
           ),
           backgroundColor: Colors.lightGreen,

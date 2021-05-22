@@ -804,7 +804,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final _formKey = GlobalKey<FormState>();
     return Scaffold(
       appBar: AppBar(
         brightness: Brightness.dark,
@@ -814,7 +813,8 @@ class _LoginScreenState extends State<LoginScreen> {
             color: Colors.white,
             fontFamily: 'OpenSans',
             letterSpacing: 0.5,
-            fontSize: 18.0,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold
           ),
         ),
         backgroundColor: Colors.lightGreen,

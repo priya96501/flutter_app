@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:io';
 
 import 'package:Aaraam/screens/Confirm.dart';
 import 'package:Aaraam/utilities/constants.dart';
@@ -120,21 +121,48 @@ class _OrderScreenWidget extends State<Order> {
       width: double.infinity,
       child: RaisedButton(
         elevation: 2.0,
-        onPressed: () {
+        onPressed: () async {
           if (formkey.currentState!.validate()) {
             if (isPressedWeight) {
-              setState(() {
-                _isLoading = true;
-              });
-              submit(
-                  from_address.text,
-                  to_address.text,
-                  from_mobile.text,
-                  to_mobile.text,
-                  order_value.text,
-                  order_description.text,
-                  weight_data_);
               print("Validated");
+              try {
+                final result = await InternetAddress.lookup('example.com');
+                if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+                  print('connected');
+                  setState(() {
+                    _isLoading = true;
+                  });
+                  submit(
+                      from_address.text,
+                      to_address.text,
+                      from_mobile.text,
+                      to_mobile.text,
+                      order_value.text,
+                      order_description.text,
+                      weight_data_);
+                }
+              } on SocketException catch (_) {
+                final snackBar = SnackBar(
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: Colors.lightGreen,
+                  margin: EdgeInsets.all(10.0),
+                  elevation: 2.0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(7.0),
+                  ),
+                  padding:
+                      EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
+                  content: Text('No Internet Connection!',
+                      style: TextStyle(
+                          color: Colors.white,
+                          letterSpacing: 0.5,
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.normal,
+                          fontFamily: 'OpenSans')),
+                );
+                ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                print('not connected');
+              }
             } else {
               showWeightError();
               print("weight not selected");
@@ -477,11 +505,11 @@ class _OrderScreenWidget extends State<Order> {
         title: Text(
           "Book Order",
           style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'OpenSans',
-            letterSpacing: 0.5,
-            fontSize: 18.0,
-          ),
+              color: Colors.white,
+              fontFamily: 'OpenSans',
+              letterSpacing: 0.5,
+              fontSize: 16.0,
+              fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.lightGreen,
       ),
@@ -509,6 +537,7 @@ class _OrderScreenWidget extends State<Order> {
                           vertical: 25.0,
                         ),
                         child: Column(
+
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             SizedBox(height: 10.0),

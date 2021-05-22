@@ -1,10 +1,14 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:Aaraam/screens/cancelorder.dart';
 import 'package:Aaraam/screens/detail.dart';
+import 'package:Aaraam/utilities/Users.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:Aaraam/utilities/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 
 import 'dashboard.dart';
 
@@ -14,20 +18,9 @@ class Bookings extends StatefulWidget {
 }
 
 class _BookingsWidget extends State<Bookings> {
-  String _groupValue = '';
-  String user_id = '', booking_id = '';
-  bool _isLoading = false, viewVisible = false;
-  List<String> reasons_ = [];
-  List<String> reasons_id = [];
-  List<String> booking_ids = [];
-  List<String> charges = [];
-  List<String> status_ = [];
-  List<String> weights = [];
-  List<String> date = [];
-  List<String> is_cancelled_ = [];
-  List<bool> is_cancel_visible = [];
-
-  late List<bool> _isChecked;
+  String user_id = '', booking_id = '', _groupValue = '';
+  bool _isLoading = false, viewVisible = false, noDataviewVisible = false;
+  List<User> listModel = [];
 
   void showWidget() {
     setState(() {
@@ -41,20 +34,56 @@ class _BookingsWidget extends State<Bookings> {
     });
   }
 
+  void showNoDataWidget() {
+    setState(() {
+      noDataviewVisible = true;
+    });
+  }
+
+  void hideNoDataWidget() {
+    setState(() {
+      noDataviewVisible = false;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    getStringValuesSF("USER_ID").then((val) => setState(() {
-          user_id = val;
-          print("user_id : " + user_id);
-          fetchJSONData(user_id);
-        }));
     _groupValue = '';
-    _isChecked = List<bool>.filled(reasons_.length, false);
     setState(() {
       _isLoading = true;
     });
-    fetchCancellationReason();
+    getStringValuesSF("USER_ID").then((val) => setState(() async {
+          user_id = val;
+          print("user_id : " + user_id);
+          try {
+            final result = await InternetAddress.lookup('example.com');
+            if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+              fetchJSONData(user_id);
+              print('connected');
+            }
+          } on SocketException catch (_) {
+            final snackBar = SnackBar(
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: Colors.lightGreen,
+              margin: EdgeInsets.all(10.0),
+              elevation: 2.0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(7.0),
+              ),
+              padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
+              content: Text('No Internet Connection!',
+                  style: TextStyle(
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.normal,
+                      fontFamily: 'OpenSans')),
+            );
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            print('not connected');
+          }
+        }));
   }
 
   fetchJSONData(String userid) async {
@@ -73,69 +102,22 @@ class _BookingsWidget extends State<Bookings> {
       String status = map["status"];
 
       if (status == "1") {
-        List<dynamic> data = map["data"];
-        List<Map<String, dynamic>> jsonItems =
-            data.cast<Map<String, dynamic>>();
-        print(jsonItems.length);
-        for (var i = 0; i < jsonItems.length; i++) {
-          booking_ids.add(jsonItems[i]["booking_id"]);
-          date.add(jsonItems[i]["date"]);
-          charges.add(jsonItems[i]["charges"]);
-          weights.add(jsonItems[i]["weight_description"]);
-          is_cancelled_.add(jsonItems[i]["is_cancelled"]);
-          status_.add(jsonItems[i]["booking_status"]);
-        }
-
-        print(is_cancelled_.toString());
-        // TODO : show/hide cancel button on basis of is_cancelled=1/0
-
         setState(() {
           _isLoading = false;
+          hideNoDataWidget();
+          showWidget();
+          listModel = (response["data"] as List)
+              .map<User>((json) => new User.fromJson(json))
+              .toList();
+
+          print(listModel.length);
         });
       } else {
         setState(() {
           _isLoading = false;
+          showNoDataWidget();
+          hideWidget();
         });
-        final snackBar = SnackBar(
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.lightGreen,
-          margin: EdgeInsets.all(10.0),
-          elevation: 2.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(7.0),
-          ),
-          padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
-          content: Text('No bookings found!',
-              style: TextStyle(
-                  color: Colors.white,
-                  letterSpacing: 0.5,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.normal,
-                  fontFamily: 'OpenSans')),
-        );
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      }
-    } else {
-      setState(() {
-        _isLoading = false;
-      });
-      throw Exception('Failed to load data from internet');
-    }
-  }
-
-  fetchCancellationReason() async {
-    String apiURL =
-        'https://www.drugvillatechnologies.com/aaram/api/getreason.php?reason_type=BOOKING';
-    var jsonResponse = await http.get(Uri.parse(apiURL));
-
-    if (jsonResponse.statusCode == 200) {
-      var response = json.decode(jsonResponse.body);
-      Map<String, dynamic> map = response;
-      List<dynamic> data = map["data"];
-      List<Map<String, dynamic>> jsonItems = data.cast<Map<String, dynamic>>();
-      for (var i = 0; i < jsonItems.length; i++) {
-        reasons_.add(jsonItems[i]["reason"]);
-        reasons_id.add(jsonItems[i]["id"]);
       }
     } else {
       throw Exception('Failed to load data from internet');
@@ -197,100 +179,6 @@ class _BookingsWidget extends State<Bookings> {
     }
   }
 
-  Widget setupAlertDialoadContainer(BuildContext context, String bookingId) {
-    return Column(mainAxisSize: MainAxisSize.min, children: [
-      Container(
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: reasons_.length,
-          itemBuilder: (BuildContext context, int index) {
-            return CheckboxListTile(
-              title: Text(reasons_[index]),
-              value: _isChecked[index],
-              onChanged: (val) {
-                setState(
-                  () {
-                    _isChecked[index] = val!;
-                  },
-                );
-              },
-            );
-            /*return RadioListTile(
-              value: reasons_id[index],
-              groupValue: _groupValue,
-              onChanged: (String? val) {
-                print("Radio $val");
-                setState(() {
-                  _groupValue = val!;
-                });
-                print("Group $_groupValue");
-                //setSelectedRadio(val);
-              },
-              activeColor: Colors.green,
-              title: Text(reasons_[index].toString(),
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-                    letterSpacing: 0.5,
-                    fontFamily: 'OpenSans',
-                    fontSize: 14.0,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.black87,
-                  )),
-            );*/
-          },
-        ),
-      ),
-      Align(
-        alignment: Alignment.bottomCenter,
-        child: RaisedButton(
-          padding: EdgeInsets.symmetric(vertical: 7.0, horizontal: 25.0),
-          elevation: 1.0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30.0),
-          ),
-          color: Colors.lightGreen,
-          onPressed: () {
-            print("group value" + _groupValue);
-            if (_groupValue != '') {
-              Navigator.pop(context);
-              cancelBooking(bookingId);
-            } else {
-              final snackBar = SnackBar(
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: Colors.redAccent,
-                margin: EdgeInsets.all(10.0),
-                elevation: 2.0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(7.0),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 3.0, horizontal: 15.0),
-                content: Text('Select cancellation reason!',
-                    style: TextStyle(
-                        color: Colors.white,
-                        letterSpacing: 0.5,
-                        fontSize: 16.0,
-                        fontWeight: FontWeight.normal,
-                        fontFamily: 'OpenSans')),
-              );
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);
-            }
-          },
-          child: Text(
-            "Cancel",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'OpenSans',
-              fontSize: 16.0,
-              letterSpacing: 0.5,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    ]);
-  }
-
   ListTile _tile(BuildContext context, int index) => ListTile(
         title: Container(
             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -310,7 +198,7 @@ class _BookingsWidget extends State<Bookings> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
                         Text(
-                          "Order #" + booking_ids[index].toString(),
+                          "Order #" + listModel[index].id,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -319,7 +207,7 @@ class _BookingsWidget extends State<Bookings> {
                           ),
                         ),
                         Text(
-                          formatDate(date[index].toString()),
+                          formatDate(listModel[index].date),
                           style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.normal,
@@ -330,17 +218,17 @@ class _BookingsWidget extends State<Bookings> {
                       ]),
                   SizedBox(height: 10),
                   Text(
-                    status_[index].toString().toUpperCase(),
+                    listModel[index].booking_status.toUpperCase(),
                     style: TextStyle(
                         fontSize: 15,
-                        color: setStatusColor(status_[index].toString()),
+                        color: setStatusColor(listModel[index].booking_status),
                         letterSpacing: 0.5,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'OpenSans'),
                   ),
                   SizedBox(height: 10),
                   Text(
-                    "charges : ₹ " + charges[index].toString(),
+                    "charges : ₹ " + listModel[index].charges,
                     style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
@@ -352,7 +240,7 @@ class _BookingsWidget extends State<Bookings> {
                     height: 5,
                   ),
                   Text(
-                    "Weight : " + weights[index].toString(),
+                    "Weight : " + listModel[index].weight,
                     style: const TextStyle(
                         fontSize: 14,
                         color: Colors.grey,
@@ -374,8 +262,8 @@ class _BookingsWidget extends State<Bookings> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => BookingDetail(
-                                          booking_ids[index].toString())));
+                                      builder: (context) =>
+                                          BookingDetail(listModel[index].id)));
                             },
                             padding: EdgeInsets.all(15.0),
                             shape: RoundedRectangleBorder(
@@ -398,34 +286,23 @@ class _BookingsWidget extends State<Bookings> {
                         Visibility(
                           maintainAnimation: true,
                           maintainState: true,
-                          visible: viewVisible,
+                          visible: listModel[index].is_cancelled == "0"
+                              ? true
+                              : false,
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 10.0),
                             child: RaisedButton(
-                              elevation: 2.0,
                               onPressed: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Container(
-                                            child: Padding(
-                                          padding: const EdgeInsets.all(5.0),
-                                          child: Text(
-                                            'Cancel Order #' +
-                                                booking_ids[index].toString(),
-                                            style: TextStyle(
-                                                color: Colors.black54),
-                                          ),
-                                        )),
-                                        content: setupAlertDialoadContainer(
-                                            context,
-                                            booking_ids[index].toString()),
-                                      );
-                                    });
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            CustomDialog(listModel[index].id)));
                               },
                               padding: EdgeInsets.all(15.0),
                               shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                    color: Colors.lightGreen, width: 1.5),
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
                               color: Colors.white,
@@ -471,27 +348,106 @@ class _BookingsWidget extends State<Bookings> {
           title: Text(
             "My Bookings",
             style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'OpenSans',
-              letterSpacing: 0.5,
-              fontSize: 18.0,
-            ),
+                color: Colors.white,
+                fontFamily: 'OpenSans',
+                letterSpacing: 0.5,
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold),
           ),
           backgroundColor: Colors.lightGreen,
         ),
         body: AnnotatedRegion<SystemUiOverlayStyle>(
             value: SystemUiOverlayStyle.light,
             child: _isLoading
-                ? Center(child: CircularProgressIndicator())
+                ? Shimmer.fromColors(
+                    child: ListView.builder(
+                      itemCount: 9,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          leading: Icon(Icons.image, size: 50.0),
+                          title: SizedBox(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 5.0),
+                                ),
+                                Container(
+                                  decoration: shimmerBoxDecorationStyle,
+                                  width: double.infinity,
+                                  height: 12.0,
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 5.0),
+                                ),
+                                Container(
+                                  width: 100.0,
+                                  height: 12.0,
+                                  decoration: shimmerBoxDecorationStyle,
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 5.0),
+                                ),
+                                Container(
+                                  width: 40.0,
+                                  height: 12.0,
+                                  decoration: shimmerBoxDecorationStyle,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    baseColor: Color(0xFFE0E0E0),
+                    highlightColor: Colors
+                        .black12) /*Center(child: CircularProgressIndicator())*/
                 : GestureDetector(
                     onTap: () => FocusScope.of(context).unfocus(),
-                    child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 15.0),
+                    child: Stack(children: <Widget>[
+                      Container(
+                        height: double.infinity,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                        ),
+                      ),
+                      Visibility(
+                        maintainAnimation: true,
+                        maintainState: true,
+                        visible: viewVisible,
                         child: ListView.builder(
-                          itemCount: booking_ids.length,
+                          itemCount: listModel.length,
                           itemBuilder: (BuildContext context, int index) {
                             return _tile(context, index);
                           },
-                        )))));
+                        ),
+                      ),
+                      Visibility(
+                          maintainAnimation: true,
+                          maintainState: true,
+                          visible: noDataviewVisible,
+                          child: Container(
+                            alignment: Alignment.center,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                // SizedBox(height: 150.0),
+                                Image.asset('assets/images/noorder.png'),
+                                SizedBox(height: 20.0),
+                                Text(
+                                  'No Bookings Found!',
+                                  style: TextStyle(
+                                    color: Colors.black54,
+                                    fontFamily: 'OpenSans',
+                                    fontSize: 20.0,
+                                    letterSpacing: 0.5,
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ))
+                    ]))));
   }
 }

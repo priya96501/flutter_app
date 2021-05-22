@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:share/share.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 final kHintTextStyle = TextStyle(
   color: Colors.black26,
@@ -21,6 +23,17 @@ const kPrimaryLightColor = Color(0xFFF1E6FF);
 final kBoxDecorationStyle = BoxDecoration(
   color: Colors.white,
   borderRadius: BorderRadius.circular(7.0),
+  boxShadow: [
+    BoxShadow(
+      color: Colors.black12,
+      blurRadius: 5.0,
+      offset: Offset(0, 2),
+    ),
+  ],
+);
+final shimmerBoxDecorationStyle = BoxDecoration(
+  color: Colors.white,
+  borderRadius: BorderRadius.circular(4.0),
   boxShadow: [
     BoxShadow(
       color: Colors.black12,
@@ -150,7 +163,7 @@ Future<void> removeValues(String Key) async {
 
 String formatDate(String date) {
   DateTime dateTime = DateTime.parse(date);
-  String formattedDate = DateFormat('yyyy-MM-dd').format(dateTime);
+  String formattedDate = DateFormat('dd MMM yyyy').format(dateTime);
   return formattedDate;
 }
 
@@ -167,4 +180,34 @@ Color setStatusColor(String bookingStatus) {
   }
 
   return color;
+}
+
+void launchEmailSubmission(String email) async {
+  final Uri params = Uri(
+      scheme: 'mailto',
+      path: email,
+      queryParameters: {'subject': 'ContactQuery'});
+  String url = params.toString();
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    print('Could not launch $url');
+  }
+}
+
+void launchCallSubmission(String mobile) async {
+  String url = "tel://<${mobile}>";
+  if (await canLaunch(url)) {
+    await launch(url);
+  } else {
+    print('Could not launch $url');
+  }
+}
+
+void ShareApp(BuildContext context) async {
+  final RenderBox box = context.findRenderObject() as RenderBox;
+  await Share.share(
+      "Click ${'https://play.google.com/store/apps/details?id=com.drugvillaPharmacy'} to download the app!",
+      /* subject: "subject",*/
+      sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);
 }
